@@ -1232,12 +1232,25 @@
   if('scrollRestoration' in history) history.scrollRestoration='manual';
   var app=window.navigator.standalone===true || matchMedia('(display-mode: standalone)').matches;
   var nav=performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
-  var delay=(!app && nav && nav.type==='reload') ? 120 : 0;
-  setTimeout(function(){
-   requestAnimationFrame(function(){
-    slot.scrollIntoView({ block:'center', inline:'nearest' });
-   });
-  }, delay);
+  function jump(){
+   slot.scrollIntoView({ block:'center', inline:'nearest' });
+  }
+  if(app || !nav || nav.type!=='reload'){
+   requestAnimationFrame(jump);
+   return;
+  }
+  var start=Date.now(), last=window.scrollY, same=0;
+  (function tick(){
+   var y=window.scrollY;
+   if(y===last) same++; else same=0;
+   last=y;
+   var elapsed=Date.now()-start;
+   if((elapsed>=240 && same>=5) || elapsed>=320){
+    jump();
+    return;
+   }
+   requestAnimationFrame(tick);
+  })();
  }
  apply(true);
  if(!frozen) setInterval(function(){ apply(false); }, 30000);
