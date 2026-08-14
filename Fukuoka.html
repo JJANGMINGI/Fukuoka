@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Fukuoka">
@@ -27,7 +27,7 @@
  body{
  margin:0; background:var(--bg); color:var(--label);
  font: 400 var(--fs-body)/1.42 -apple-system, BlinkMacSystemFont, 'SF Pro KR', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
- padding: 0 0 56px;
+ padding: env(safe-area-inset-top, 0px) 0 56px;
  -webkit-font-smoothing: antialiased;
  overflow-x: hidden;
  }
