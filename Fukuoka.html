@@ -225,7 +225,7 @@
  .common-box ul.item-list{ margin:6px 0 0; box-shadow:none; background:var(--gray6); }
  .common-box h3.sub-h{ margin-left:0; margin-right:0; }
  .common-box .hotel-block h3.sub-h:first-of-type{ margin-top:14px; }
- .chk.pack-add{ cursor:text; -webkit-user-select:auto; user-select:auto; }
+ .chk.pack-add{ cursor:text; -webkit-user-select:auto; user-select:auto; margin:0; width:auto; max-width:100%; min-width:0; }
  .chk.pack-add .box{ pointer-events:none; }
  .chk.pack-add input{
   flex:1; min-width:0; width:100%; max-width:100%;
@@ -966,7 +966,7 @@
  <div class="chk"><div class="box"></div><span class="label">손풍기</span></div>
  <div class="chk"><div class="box"></div><span class="label">우산</span></div>
  <div class="pack-extra" data-who="mingi"></div>
- <div class="chk pack-add" data-who="mingi"><div class="box"></div><input type="text" placeholder="입력" size="1" enterkeyhint="done" autocomplete="off"></div>
+ <form class="chk pack-add" data-who="mingi" action="#"><div class="box"></div><input type="text" placeholder="입력" size="1" enterkeyhint="enter" autocomplete="off"></form>
  </div>
  </div>
  </div>
@@ -1033,7 +1033,7 @@
  <div class="chk"><div class="box"></div><span class="label">손풍기</span></div>
  <div class="chk"><div class="box"></div><span class="label">우산</span></div>
  <div class="pack-extra" data-who="hyemin"></div>
- <div class="chk pack-add" data-who="hyemin"><div class="box"></div><input type="text" placeholder="입력" size="1" enterkeyhint="done" autocomplete="off"></div>
+ <form class="chk pack-add" data-who="hyemin" action="#"><div class="box"></div><input type="text" placeholder="입력" size="1" enterkeyhint="enter" autocomplete="off"></form>
  </div>
  </div>
  </div>
@@ -1129,13 +1129,25 @@
 
  function parseExtraMap(val){
   if(!val) return [];
-  if(Array.isArray(val)) return normList(val);
-  return normList(Object.keys(val).map(function(id){
+  if(Array.isArray(val)){
+   return val.map(function(v,i){
+    if(!v) return null;
+    if(typeof v==='string') return { id:'i'+i, t:v, d:false };
+    return { id:v.id||('i'+i), t:v.t, d:!!v.d };
+   }).filter(function(item){ return item && item.t && !isTest(item.t); });
+  }
+  return Object.keys(val).map(function(id){
    var v=val[id];
    if(typeof v==='string') return { id:id, t:v, d:false };
    if(!v || typeof v!=='object') return null;
-   return { id:v.id||id, t:v.t, d:!!v.d };
-  }));
+   return { id:id, t:v.t, d:!!v.d };
+  }).filter(function(item){ return item && item.t && !isTest(item.t); });
+ }
+ function mergeWho(who, remoteVal){
+  var map={};
+  extra[who].forEach(function(it){ map[it.id]=it; });
+  parseExtraMap(remoteVal).forEach(function(it){ map[it.id]=it; });
+  extra[who]=Object.keys(map).map(function(k){ return map[k]; });
  }
 
  function chkMap(){
@@ -1219,29 +1231,29 @@
   if(!form) return;
   var inp=form.querySelector('input');
   var lock=false;
-  form.addEventListener('click',function(){ inp.focus(); });
   function commitAdd(){
-   if(lock) return;
+   if(lock) return false;
    var t=(inp.value||'').trim();
-   if(!t || isTest(t)) return;
+   if(!t || isTest(t)) return false;
    lock=true;
    inp.value='';
    var item={ id:nid(), t:t, d:false };
    extra[who].push(item);
    renderExtra();
    pushOneExtra(who, item);
-   setTimeout(function(){ lock=false; }, 400);
+   setTimeout(function(){ lock=false; inp.focus(); }, 400);
+   return true;
   }
-  inp.addEventListener('keydown',function(e){
-   if(e.key!=='Enter' && e.code!=='Enter' && e.keyCode!==13 && e.which!==13) return;
+  form.addEventListener('submit',function(e){
    e.preventDefault();
-   setTimeout(commitAdd, 0);
+   commitAdd();
   });
-  inp.addEventListener('keyup',function(e){
-   if(e.key!=='Enter' && e.code!=='Enter' && e.keyCode!==13 && e.which!==13) return;
-   setTimeout(commitAdd, 0);
+  inp.addEventListener('keydown',function(e){
+   if(e.key==='Enter' || e.code==='Enter' || e.keyCode===13){
+    e.preventDefault();
+    setTimeout(commitAdd, 0);
+   }
   });
-  inp.addEventListener('change', commitAdd);
  });
 
  try{
@@ -1267,8 +1279,8 @@
     if(extra.mingi.length || extra.hyemin.length) pushAllExtra();
     return;
    }
-   extra.mingi=parseExtraMap(v.mingi);
-   extra.hyemin=parseExtraMap(v.hyemin);
+   mergeWho('mingi', v.mingi);
+   mergeWho('hyemin', v.hyemin);
    renderExtra();
    saveLocal();
    if(Array.isArray(v.mingi) || Array.isArray(v.hyemin)) pushAllExtra();
