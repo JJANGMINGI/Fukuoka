@@ -1254,6 +1254,14 @@
     setTimeout(commitAdd, 0);
    }
   });
+  inp.addEventListener('beforeinput',function(e){
+   if(e.inputType==='insertLineBreak' || e.inputType==='insertParagraph'){
+    e.preventDefault();
+    commitAdd();
+   }
+  });
+  inp.addEventListener('change', commitAdd);
+  inp.addEventListener('blur', function(){ setTimeout(commitAdd, 0); });
  });
 
  try{
