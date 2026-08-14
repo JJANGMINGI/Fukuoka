@@ -31,7 +31,19 @@
  -webkit-font-smoothing: antialiased;
  overflow-x: hidden;
  }
- html{ overflow-x: hidden; }
+ html{ overflow-x: hidden; overscroll-behavior-y: contain; }
+ #ptr{
+  position:fixed; left:0; right:0; top:calc(env(safe-area-inset-top, 0px) + 8px);
+  height:0; overflow:hidden; display:flex; align-items:flex-end; justify-content:center;
+  pointer-events:none; z-index:80;
+ }
+ #ptr i{
+  width:22px; height:22px; margin-bottom:10px; border-radius:50%;
+  border:2.5px solid rgba(60,60,67,0.18); border-top-color:#8E8E93;
+  opacity:0; transform:scale(0.6);
+ }
+ #ptr.spin i{ animation:ptrspin 0.7s linear infinite; opacity:1; transform:scale(1); }
+ @keyframes ptrspin{ to{ transform:rotate(360deg); } }
  .wrap{ max-width:640px; margin:0 auto; padding:0 16px; min-width:0; }
 
  /* ===== Large Title header — plain, like an iOS nav bar in large-title state ===== */
@@ -1029,6 +1041,56 @@
  </div>
 
 </div>
+<div id="ptr" aria-hidden="true"><i></i></div>
+<script>
+(function(){
+ var standalone=window.navigator.standalone===true || matchMedia('(display-mode: standalone)').matches;
+ if(!standalone) return;
+ var bar=document.getElementById('ptr');
+ var spin=bar.querySelector('i');
+ var startY=0, pulling=false, armed=false, dy=0, busy=false;
+ var THRESH=70;
+ function atTop(){ return (window.scrollY||document.documentElement.scrollTop||0)<=0; }
+ function setPull(px){
+  dy=px;
+  bar.style.height=Math.max(0, px)+'px';
+  var p=Math.min(1, px/THRESH);
+  spin.style.opacity=String(p);
+  spin.style.transform='scale('+(0.6+0.4*p)+') rotate('+(p*180)+'deg)';
+ }
+ document.addEventListener('touchstart', function(e){
+  if(busy || e.touches.length!==1) return;
+  if(e.target.closest('input,textarea,select')) return;
+  pulling=atTop();
+  armed=false;
+  startY=e.touches[0].clientY;
+  dy=0;
+ }, {passive:true});
+ document.addEventListener('touchmove', function(e){
+  if(!pulling || busy) return;
+  var y=e.touches[0].clientY-startY;
+  if(y>8 && atTop()){
+   armed=true;
+   e.preventDefault();
+   setPull(Math.min(120, (y-8)*0.5));
+  }else if(armed && y<=8){
+   setPull(0);
+  }
+ }, {passive:false});
+ document.addEventListener('touchend', function(){
+  if(!pulling) return;
+  pulling=false;
+  if(dy>=THRESH){
+   busy=true;
+   bar.classList.add('spin');
+   setPull(56);
+   setTimeout(function(){ location.reload(); }, 280);
+  }else{
+   setPull(0);
+  }
+ });
+})();
+</script>
 <script>
 (function(){
  var KEY='fukuoka-chk-v2';
