@@ -207,11 +207,22 @@
  .common-box ul.item-list{ margin:6px 0 0; box-shadow:none; background:var(--gray6); }
  .common-box h3.sub-h{ margin-left:0; margin-right:0; }
  .common-box .hotel-block h3.sub-h:first-of-type{ margin-top:14px; }
+ .chk.pack-add{ cursor:text; -webkit-user-select:auto; user-select:auto; }
+ .chk.pack-add .box{ pointer-events:none; }
+ .chk.pack-add input{
+  flex:1; min-width:0; width:100%; max-width:100%;
+  margin:0; padding:0; border:0; border-radius:0;
+  background:transparent; box-shadow:none; outline:none;
+  font:inherit; font-weight:600; color:var(--label); line-height:inherit;
+  -webkit-appearance:none; appearance:none;
+ }
+ .chk.pack-add input::placeholder{ color:var(--red); font-weight:600; }
+ .chk.pack-add input::-webkit-input-placeholder{ color:var(--red); font-weight:600; }
  .pack-duo{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:0 16px; }
  .pack-box{ background:var(--group); border-radius:14px; padding:12px 14px; }
  .pack-box .pack-who{ font-weight:700; font-size:var(--fs-head); color:var(--label); letter-spacing:-0.01em; margin:0 0 8px; }
- .pack-grid{ display:grid; grid-template-columns:1fr 1fr; column-gap:12px; row-gap:0; padding:0; background:transparent; border-radius:0; margin:0; align-items:start; }
- .pack-col{ display:flex; flex-direction:column; gap:14px; }
+ .pack-grid{ display:grid; grid-template-columns:1fr 1fr; column-gap:12px; row-gap:0; padding:0; background:transparent; border-radius:0; margin:0; align-items:start; min-width:0; }
+ .pack-col{ display:flex; flex-direction:column; gap:14px; min-width:0; }
  .hotel-block{ margin-top:10px; }
  @media (max-width:680px){
   .checklist-grid,
@@ -936,6 +947,8 @@
  <h3 class="sub-h neutral">기타</h3>
  <div class="chk"><div class="box"></div><span class="label">손풍기</span></div>
  <div class="chk"><div class="box"></div><span class="label">우산</span></div>
+ <div class="pack-extra" data-who="mingi"></div>
+ <div class="chk pack-add" data-who="mingi"><div class="box"></div><input type="text" placeholder="입력" size="1" enterkeyhint="done" autocomplete="off"></div>
  </div>
  </div>
  </div>
@@ -1001,6 +1014,8 @@
  <h3 class="sub-h neutral">기타</h3>
  <div class="chk"><div class="box"></div><span class="label">손풍기</span></div>
  <div class="chk"><div class="box"></div><span class="label">우산</span></div>
+ <div class="pack-extra" data-who="hyemin"></div>
+ <div class="chk pack-add" data-who="hyemin"><div class="box"></div><input type="text" placeholder="입력" size="1" enterkeyhint="done" autocomplete="off"></div>
  </div>
  </div>
  </div>
@@ -1014,7 +1029,7 @@
  var KEY='fukuoka-chk-v2';
  var saved={};
  try{ saved=JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){}
- document.querySelectorAll('.chk').forEach(function(el,i){
+ document.querySelectorAll('.chk:not(.pack-add)').forEach(function(el,i){
   var id=String(i);
   if(Object.prototype.hasOwnProperty.call(saved,id)){
    el.classList.toggle('done', !!saved[id]);
@@ -1024,6 +1039,56 @@
    el.classList.toggle('done');
    saved[id]=el.classList.contains('done');
    try{ localStorage.setItem(KEY, JSON.stringify(saved)); }catch(e){}
+  });
+ });
+})();
+(function(){
+ var KEY='fukuoka-pack-extra';
+ var extra={ mingi:[], hyemin:[] };
+ try{
+  var loaded=JSON.parse(localStorage.getItem(KEY)||'{}');
+  extra.mingi=Array.isArray(loaded.mingi)?loaded.mingi:[];
+  extra.hyemin=Array.isArray(loaded.hyemin)?loaded.hyemin:[];
+ }catch(e){}
+ function isTest(t){
+  t=(t||'').trim();
+  return t==='장민기' || t==='ㅇㅇㅇㅇ' || /^ㅇ+$/.test(t);
+ }
+ extra.mingi=extra.mingi.filter(function(item){ return !isTest(item.t); });
+ extra.hyemin=extra.hyemin.filter(function(item){ return !isTest(item.t); });
+ function save(){ try{ localStorage.setItem(KEY, JSON.stringify(extra)); }catch(e){} }
+ save();
+ function bindExtra(el, who, idx){
+  el.addEventListener('click',function(){
+   el.classList.toggle('done');
+   extra[who][idx].d=el.classList.contains('done');
+   save();
+  });
+ }
+ function row(who, idx, item){
+  var el=document.createElement('div');
+  el.className=item.d?'chk done':'chk';
+  el.innerHTML='<div class="box"></div><span class="label"></span>';
+  el.querySelector('.label').textContent=item.t;
+  bindExtra(el, who, idx);
+  return el;
+ }
+ ['mingi','hyemin'].forEach(function(who){
+  var box=document.querySelector('.pack-extra[data-who="'+who+'"]');
+  var form=document.querySelector('.pack-add[data-who="'+who+'"]');
+  if(!box||!form) return;
+  extra[who].forEach(function(item,i){ box.appendChild(row(who,i,item)); });
+  var inp=form.querySelector('input');
+  form.addEventListener('click',function(){ inp.focus(); });
+  inp.addEventListener('keydown',function(e){
+   if(e.key!=='Enter') return;
+   e.preventDefault();
+   var t=(inp.value||'').trim();
+   if(!t) return;
+   extra[who].push({ t:t, d:false });
+   save();
+   box.appendChild(row(who, extra[who].length-1, extra[who][extra[who].length-1]));
+   inp.value='';
   });
  });
 })();
