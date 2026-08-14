@@ -1230,9 +1230,14 @@
   var slot=el.querySelector('li.now-slot');
   if(!slot) return;
   if('scrollRestoration' in history) history.scrollRestoration='manual';
-  requestAnimationFrame(function(){
-   slot.scrollIntoView({ block:'center', inline:'nearest' });
-  });
+  var app=window.navigator.standalone===true || matchMedia('(display-mode: standalone)').matches;
+  var nav=performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+  var delay=(!app && nav && nav.type==='reload') ? 120 : 0;
+  setTimeout(function(){
+   requestAnimationFrame(function(){
+    slot.scrollIntoView({ block:'center', inline:'nearest' });
+   });
+  }, delay);
  }
  apply(true);
  if(!frozen) setInterval(function(){ apply(false); }, 30000);
