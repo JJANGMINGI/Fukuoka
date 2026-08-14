@@ -27,7 +27,7 @@
  body{
  margin:0; background:var(--bg); color:var(--label);
  font: 400 var(--fs-body)/1.42 -apple-system, BlinkMacSystemFont, 'SF Pro KR', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
- padding: max(env(safe-area-inset-top, 0px), 54px) 0 56px;
+ padding: calc(env(safe-area-inset-top, 0px) + 8px) 0 56px;
  -webkit-font-smoothing: antialiased;
  overflow-x: hidden;
  }
@@ -35,7 +35,7 @@
  .wrap{ max-width:640px; margin:0 auto; padding:0 16px; min-width:0; }
 
  /* ===== Large Title header — plain, like an iOS nav bar in large-title state ===== */
- .hero{ padding:28px 16px 18px; }
+ .hero{ padding:20px 16px 18px; }
  .hero .eyebrow{ font-size:var(--fs-sub); font-weight:600; color:var(--blue); margin-bottom:2px; }
  .hero h1{ font-size:var(--fs-large); font-weight:800; letter-spacing:-0.023em; margin:0 0 6px; color:var(--label); line-height:1.08; }
  .hero .sub{ font-size:var(--fs-body); color:var(--label2); margin-bottom:14px; }
