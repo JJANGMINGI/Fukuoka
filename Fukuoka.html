@@ -1086,7 +1086,7 @@
    busy=true;
    bar.classList.add('spin');
    setPull(56);
-   setTimeout(function(){ location.reload(); }, 280);
+   setTimeout(function(){ location.reload(); }, 50);
   }else{
    setPull(0);
   }
@@ -1230,13 +1230,9 @@
   var slot=el.querySelector('li.now-slot');
   if(!slot) return;
   if('scrollRestoration' in history) history.scrollRestoration='manual';
-  var nav=performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
-  var delay=(nav && nav.type==='reload') ? 480 : 0;
-  setTimeout(function(){
-   requestAnimationFrame(function(){
-    slot.scrollIntoView({ block:'center', inline:'nearest' });
-   });
-  }, delay);
+  requestAnimationFrame(function(){
+   slot.scrollIntoView({ block:'center', inline:'nearest' });
+  });
  }
  apply(true);
  if(!frozen) setInterval(function(){ apply(false); }, 30000);
