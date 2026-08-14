@@ -1097,87 +1097,26 @@
 <script>
 (function(){
  var CHK_KEY='fukuoka-chk-v2';
- var EXTRA_KEY='fukuoka-pack-extra';
  var applying=false;
  var saved={};
- var extra={ mingi:[], hyemin:[] };
  var chks=[].slice.call(document.querySelectorAll('#prep .chk, #pack .chk:not(.pack-add)')).filter(function(el){
   return !el.closest('.pack-extra');
  });
  var db=null;
-
  try{ saved=JSON.parse(localStorage.getItem(CHK_KEY)||'{}'); }catch(e){}
- try{
-  var loaded=JSON.parse(localStorage.getItem(EXTRA_KEY)||'{}');
-  extra.mingi=Array.isArray(loaded.mingi)?loaded.mingi:[];
-  extra.hyemin=Array.isArray(loaded.hyemin)?loaded.hyemin:[];
- }catch(e){}
-
- function isTest(t){
-  t=(t||'').trim();
-  return t==='장민기' || t==='ㅇㅇㅇㅇ' || /^ㅇ+$/.test(t);
- }
- function nid(){ return 'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
- function normList(arr){
-  return (arr||[]).filter(function(item){ return item && item.t && !isTest(item.t); }).map(function(item){
-   return { id:item.id||nid(), t:String(item.t), d:!!item.d };
-  });
- }
- extra.mingi=normList(extra.mingi);
- extra.hyemin=normList(extra.hyemin);
-
- function parseExtraMap(val){
-  if(!val) return [];
-  if(Array.isArray(val)){
-   return val.map(function(v,i){
-    if(!v) return null;
-    if(typeof v==='string') return { id:'i'+i, t:v, d:false };
-    return { id:v.id||('i'+i), t:v.t, d:!!v.d };
-   }).filter(function(item){ return item && item.t && !isTest(item.t); });
-  }
-  return Object.keys(val).map(function(id){
-   var v=val[id];
-   if(typeof v==='string') return { id:id, t:v, d:false };
-   if(!v || typeof v!=='object') return null;
-   return { id:id, t:v.t, d:!!v.d };
-  }).filter(function(item){ return item && item.t && !isTest(item.t); });
- }
- function mergeWho(who, remoteVal){
-  var map={};
-  extra[who].forEach(function(it){ map[it.id]=it; });
-  parseExtraMap(remoteVal).forEach(function(it){ map[it.id]=it; });
-  extra[who]=Object.keys(map).map(function(k){ return map[k]; });
- }
 
  function chkMap(){
   var chk={};
   chks.forEach(function(el,i){ chk[String(i)]=el.classList.contains('done') ? 1 : 0; });
   return chk;
  }
- function saveLocal(){
+ function saveChk(){
   try{ localStorage.setItem(CHK_KEY, JSON.stringify(chkMap())); }catch(e){}
-  try{ localStorage.setItem(EXTRA_KEY, JSON.stringify(extra)); }catch(e){}
- }
- function extraObj(who){
-  var o={};
-  extra[who].forEach(function(it){ o[it.id]={ t:it.t, d: it.d ? 1 : 0 }; });
-  return o;
  }
  function pushChk(){
-  saveLocal();
+  saveChk();
   if(db) db.child('chk').set(chkMap());
  }
- function pushOneExtra(who, item){
-  saveLocal();
-  if(db) db.child('extra/'+who+'/'+item.id).set({ t:item.t, d: item.d ? 1 : 0 });
- }
- function pushAllExtra(){
-  saveLocal();
-  if(!db) return;
-  db.child('extra/mingi').set(extraObj('mingi'));
-  db.child('extra/hyemin').set(extraObj('hyemin'));
- }
-
  function applyChk(data){
   applying=true;
   chks.forEach(function(el,i){
@@ -1188,35 +1127,7 @@
   });
   applying=false;
  }
-
- function row(who, item){
-  var el=document.createElement('div');
-  el.className=item.d?'chk done':'chk';
-  el.innerHTML='<div class="box"></div><span class="label"></span>';
-  el.querySelector('.label').textContent=item.t;
-  el.addEventListener('click',function(e){
-   if(applying) return;
-   if(e.target.closest('a')) return;
-   item.d=!item.d;
-   el.classList.toggle('done', item.d);
-   pushOneExtra(who, item);
-  });
-  return el;
- }
- function renderExtra(){
-  applying=true;
-  ['mingi','hyemin'].forEach(function(who){
-   var box=document.querySelector('.pack-extra[data-who="'+who+'"]');
-   if(!box) return;
-   box.innerHTML='';
-   extra[who].forEach(function(item){ box.appendChild(row(who, item)); });
-  });
-  applying=false;
- }
-
  applyChk(saved);
- renderExtra();
-
  chks.forEach(function(el){
   el.addEventListener('click',function(e){
    if(applying) return;
@@ -1225,47 +1136,41 @@
    pushChk();
   });
  });
- ['mingi','hyemin'].forEach(function(who){
-  var form=document.querySelector('.pack-add[data-who="'+who+'"]');
-  if(!form) return;
-  var inp=form.querySelector('input');
-  var lock=false;
-  var typed='';
-  var wantAdd=false;
-  function commitAdd(){
-   if(lock) return false;
-   var t=(inp.value||typed||'').trim();
-   if(!t || isTest(t)) return false;
-   lock=true;
-   wantAdd=false;
-   typed='';
-   inp.value='';
-   extra[who].push({ id:nid(), t:t, d:false });
-   renderExtra();
-   pushOneExtra(who, extra[who][extra[who].length-1]);
-   setTimeout(function(){ lock=false; }, 300);
-   return true;
-  }
-  inp.addEventListener('input',function(){ typed=inp.value; });
-  form.addEventListener('submit',function(e){
-   e.preventDefault();
-   e.stopPropagation();
-   wantAdd=true;
-   commitAdd();
+
+ function extraBox(who){ return document.querySelector('.pack-extra[data-who="'+who+'"]'); }
+ function extraRow(who, id, t, d){
+  var el=document.createElement('div');
+  el.className=d?'chk done':'chk';
+  el.setAttribute('data-id', id);
+  el.innerHTML='<div class="box"></div><span class="label"></span>';
+  el.querySelector('.label').textContent=t;
+  el.addEventListener('click',function(e){
+   if(e.target.closest('a')) return;
+   var on=!el.classList.contains('done');
+   el.classList.toggle('done', on);
+   if(db) db.child('extra/'+who+'/'+id+'/d').set(on?1:0);
   });
-  function onEnter(e){
-   var enter=e.key==='Enter' || e.key==='Go' || e.code==='Enter' || e.keyCode===13;
-   if(!enter) return;
-   e.preventDefault();
-   wantAdd=true;
-   setTimeout(commitAdd, 50);
-  }
-  inp.addEventListener('keydown', onEnter);
-  inp.addEventListener('keyup', onEnter);
-  inp.addEventListener('compositionend',function(){
-   if(wantAdd) commitAdd();
-  });
- });
+  return el;
+ }
+ function paintExtraChild(who, key, val){
+  var box=extraBox(who);
+  if(!box || !key) return;
+  if(box.querySelector('[data-id="'+key+'"]')) return;
+  var t=(val && val.t) ? String(val.t) : (typeof val==='string'?val:'');
+  if(!t) return;
+  box.appendChild(extraRow(who, key, t, !!(val && val.d)));
+ }
+ function addExtra(who, inp){
+  if(inp.getAttribute('data-busy')==='1') return;
+  var t=(inp.value||inp.getAttribute('data-typed')||'').trim();
+  if(!t) return;
+  inp.setAttribute('data-busy','1');
+  inp.value='';
+  inp.setAttribute('data-typed','');
+  if(db) db.child('extra/'+who).push({ t:t, d:0 });
+  else paintExtraChild(who, 'l'+Date.now(), { t:t, d:0 });
+  setTimeout(function(){ inp.removeAttribute('data-busy'); }, 400);
+ }
 
  try{
   firebase.initializeApp({
@@ -1282,21 +1187,47 @@
    var v=snap.val();
    if(v) applyChk(v);
    else pushChk();
-   saveLocal();
+   saveChk();
   });
-  db.child('extra').on('value',function(snap){
-   var v=snap.val();
-   if(!v){
-    if(extra.mingi.length || extra.hyemin.length) pushAllExtra();
-    return;
-   }
-   mergeWho('mingi', v.mingi);
-   mergeWho('hyemin', v.hyemin);
-   renderExtra();
-   saveLocal();
-   if(Array.isArray(v.mingi) || Array.isArray(v.hyemin)) pushAllExtra();
+  ['mingi','hyemin'].forEach(function(who){
+   var ref=db.child('extra/'+who);
+   ref.on('child_added',function(s){ paintExtraChild(who, s.key, s.val()); });
+   ref.on('child_changed',function(s){
+    var el=extraBox(who).querySelector('[data-id="'+s.key+'"]');
+    var v=s.val()||{};
+    if(el) el.classList.toggle('done', !!v.d);
+   });
+   ref.on('child_removed',function(s){
+    var el=extraBox(who).querySelector('[data-id="'+s.key+'"]');
+    if(el) el.remove();
+   });
   });
  }catch(e){}
+
+ function isEnter(e){
+  return e.key==='Enter' || e.key==='Go' || e.key==='Done' || e.code==='Enter' || e.keyCode===13 || e.which===13;
+ }
+ function fromEvent(e){
+  var inp=e.target && e.target.closest && e.target.closest('.pack-add') ? e.target.closest('.pack-add').querySelector('input') : null;
+  if(!inp) return;
+  var who=inp.closest('[data-who]').getAttribute('data-who');
+  e.preventDefault();
+  setTimeout(function(){ addExtra(who, inp); }, 0);
+  setTimeout(function(){ addExtra(who, inp); }, 80);
+ }
+ document.addEventListener('keydown',function(e){ if(isEnter(e)) fromEvent(e); }, true);
+ document.addEventListener('keypress',function(e){ if(isEnter(e)) fromEvent(e); }, true);
+ document.addEventListener('keyup',function(e){ if(isEnter(e)) fromEvent(e); }, true);
+ ['mingi','hyemin'].forEach(function(who){
+  var form=document.querySelector('.pack-add[data-who="'+who+'"]');
+  if(!form) return;
+  var inp=form.querySelector('input');
+  inp.addEventListener('input',function(){ inp.setAttribute('data-typed', inp.value); });
+  form.addEventListener('submit',function(e){
+   e.preventDefault();
+   addExtra(who, inp);
+  });
+ });
 })();
 (function(){
  function parseNow(s){
