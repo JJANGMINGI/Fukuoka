@@ -31,7 +31,8 @@
  -webkit-font-smoothing: antialiased;
  overflow-x: hidden;
  }
- html{ overflow-x: hidden; overscroll-behavior-y: contain; }
+ html{ background:var(--bg); }
+ html.is-app{ overscroll-behavior-y: contain; }
  #ptr{
   position:fixed; left:0; right:0; top:calc(env(safe-area-inset-top, 0px) + 8px);
   height:0; overflow:hidden; display:flex; align-items:flex-end; justify-content:center;
@@ -1046,6 +1047,7 @@
 (function(){
  var standalone=window.navigator.standalone===true || matchMedia('(display-mode: standalone)').matches;
  if(!standalone) return;
+ document.documentElement.classList.add('is-app');
  var bar=document.getElementById('ptr');
  var spin=bar.querySelector('i');
  var startY=0, pulling=false, armed=false, dy=0, busy=false;
@@ -1228,11 +1230,13 @@
   var slot=el.querySelector('li.now-slot');
   if(!slot) return;
   if('scrollRestoration' in history) history.scrollRestoration='manual';
-  requestAnimationFrame(function(){
+  var nav=performance.getEntriesByType && performance.getEntriesByType('navigation')[0];
+  var delay=(nav && nav.type==='reload') ? 480 : 0;
+  setTimeout(function(){
    requestAnimationFrame(function(){
     slot.scrollIntoView({ block:'center', inline:'nearest' });
    });
-  });
+  }, delay);
  }
  apply(true);
  if(!frozen) setInterval(function(){ apply(false); }, 30000);
