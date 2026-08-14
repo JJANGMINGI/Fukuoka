@@ -1245,8 +1245,8 @@
    if(y===last) same++; else same=0;
    last=y;
    var elapsed=Date.now()-start;
-   if((elapsed>=240 && same>=5) || elapsed>=320){
-    jump();
+   if((elapsed>=380 && same>=5) || elapsed>=450){
+    requestAnimationFrame(jump);
     return;
    }
    requestAnimationFrame(tick);
