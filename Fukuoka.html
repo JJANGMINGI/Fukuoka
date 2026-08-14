@@ -1102,7 +1102,9 @@
  var applying=false;
  var saved={};
  var extra={ mingi:[], hyemin:[] };
- var chks=[].slice.call(document.querySelectorAll('.chk:not(.pack-add)'));
+ var chks=[].slice.call(document.querySelectorAll('#prep .chk, #pack .chk:not(.pack-add)')).filter(function(el){
+  return !el.closest('.pack-extra');
+ });
  var db=null;
 
  try{ saved=JSON.parse(localStorage.getItem(CHK_KEY)||'{}'); }catch(e){}
@@ -1116,32 +1118,53 @@
   t=(t||'').trim();
   return t==='장민기' || t==='ㅇㅇㅇㅇ' || /^ㅇ+$/.test(t);
  }
- extra.mingi=extra.mingi.filter(function(item){ return item && !isTest(item.t); });
- extra.hyemin=extra.hyemin.filter(function(item){ return item && !isTest(item.t); });
+ function nid(){ return 'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+ function normList(arr){
+  return (arr||[]).filter(function(item){ return item && item.t && !isTest(item.t); }).map(function(item){
+   return { id:item.id||nid(), t:String(item.t), d:!!item.d };
+  });
+ }
+ extra.mingi=normList(extra.mingi);
+ extra.hyemin=normList(extra.hyemin);
 
- function toArr(x){
-  if(Array.isArray(x)) return x.filter(function(v){ return v && v.t; });
-  if(!x || typeof x!=='object') return [];
-  return Object.keys(x).sort(function(a,b){ return Number(a)-Number(b); }).map(function(k){ return x[k]; }).filter(function(v){ return v && v.t; });
+ function parseExtraMap(val){
+  if(!val) return [];
+  if(Array.isArray(val)) return normList(val);
+  return normList(Object.keys(val).map(function(id){
+   var v=val[id];
+   if(typeof v==='string') return { id:id, t:v, d:false };
+   if(!v || typeof v!=='object') return null;
+   return { id:v.id||id, t:v.t, d:!!v.d };
+  }));
  }
 
- function packItem(it){ return { t:it.t, d: it.d ? 1 : 0 }; }
- function snapshot(){
+ function chkMap(){
   var chk={};
   chks.forEach(function(el,i){ chk[String(i)]=el.classList.contains('done') ? 1 : 0; });
-  return { chk:chk, extra:{ mingi:extra.mingi.map(packItem), hyemin:extra.hyemin.map(packItem) } };
+  return chk;
  }
  function saveLocal(){
-  try{ localStorage.setItem(CHK_KEY, JSON.stringify(snapshot().chk)); }catch(e){}
-  try{ localStorage.setItem(EXTRA_KEY, JSON.stringify({ mingi:extra.mingi, hyemin:extra.hyemin })); }catch(e){}
+  try{ localStorage.setItem(CHK_KEY, JSON.stringify(chkMap())); }catch(e){}
+  try{ localStorage.setItem(EXTRA_KEY, JSON.stringify(extra)); }catch(e){}
+ }
+ function extraObj(who){
+  var o={};
+  extra[who].forEach(function(it){ o[it.id]={ t:it.t, d: it.d ? 1 : 0 }; });
+  return o;
  }
  function pushChk(){
   saveLocal();
-  if(db) db.child('chk').set(snapshot().chk);
+  if(db) db.child('chk').set(chkMap());
  }
- function pushExtra(){
+ function pushOneExtra(who, item){
   saveLocal();
-  if(db) db.child('extra').set(snapshot().extra);
+  if(db) db.child('extra/'+who+'/'+item.id).set({ t:item.t, d: item.d ? 1 : 0 });
+ }
+ function pushAllExtra(){
+  saveLocal();
+  if(!db) return;
+  db.child('extra/mingi').set(extraObj('mingi'));
+  db.child('extra/hyemin').set(extraObj('hyemin'));
  }
 
  function applyChk(data){
@@ -1155,20 +1178,18 @@
   applying=false;
  }
 
- function bindExtra(el, who, idx){
-  el.addEventListener('click',function(){
-   if(applying) return;
-   el.classList.toggle('done');
-   extra[who][idx].d=el.classList.contains('done');
-   pushExtra();
-  });
- }
- function row(who, idx, item){
+ function row(who, item){
   var el=document.createElement('div');
   el.className=item.d?'chk done':'chk';
   el.innerHTML='<div class="box"></div><span class="label"></span>';
   el.querySelector('.label').textContent=item.t;
-  bindExtra(el, who, idx);
+  el.addEventListener('click',function(e){
+   if(applying) return;
+   if(e.target.closest('a')) return;
+   item.d=!item.d;
+   el.classList.toggle('done', item.d);
+   pushOneExtra(who, item);
+  });
   return el;
  }
  function renderExtra(){
@@ -1177,7 +1198,7 @@
    var box=document.querySelector('.pack-extra[data-who="'+who+'"]');
    if(!box) return;
    box.innerHTML='';
-   extra[who].forEach(function(item,i){ box.appendChild(row(who,i,item)); });
+   extra[who].forEach(function(item){ box.appendChild(row(who, item)); });
   });
   applying=false;
  }
@@ -1185,8 +1206,7 @@
  applyChk(saved);
  renderExtra();
 
- chks.forEach(function(el,i){
-  var id=String(i);
+ chks.forEach(function(el){
   el.addEventListener('click',function(e){
    if(applying) return;
    if(e.target.closest('a')) return;
@@ -1198,21 +1218,32 @@
   var form=document.querySelector('.pack-add[data-who="'+who+'"]');
   if(!form) return;
   var inp=form.querySelector('input');
+  var lock=false;
   form.addEventListener('click',function(){ inp.focus(); });
   function commitAdd(){
+   if(lock) return;
    var t=(inp.value||'').trim();
-   if(!t) return;
-   extra[who].push({ t:t, d:false });
+   if(!t || isTest(t)) return;
+   lock=true;
    inp.value='';
+   var item={ id:nid(), t:t, d:false };
+   extra[who].push(item);
    renderExtra();
-   pushExtra();
+   pushOneExtra(who, item);
+   setTimeout(function(){ lock=false; }, 400);
   }
   inp.addEventListener('keydown',function(e){
    if(e.key!=='Enter') return;
+   if(e.isComposing || e.keyCode===229) return;
    e.preventDefault();
    commitAdd();
   });
-  inp.addEventListener('blur', commitAdd);
+  inp.addEventListener('keyup',function(e){
+   if(e.key!=='Enter') return;
+   if(e.isComposing || e.keyCode===229) return;
+   commitAdd();
+  });
+  inp.addEventListener('change', commitAdd);
  });
 
  try{
@@ -1226,21 +1257,23 @@
    appId:"1:96606181697:web:e638aca76720e2000129c0"
   });
   db=firebase.database().ref('share');
-  db.on('value',function(snap){
+  db.child('chk').on('value',function(snap){
+   var v=snap.val();
+   if(v) applyChk(v);
+   else pushChk();
+   saveLocal();
+  });
+  db.child('extra').on('value',function(snap){
    var v=snap.val();
    if(!v){
-    db.set(snapshot());
+    if(extra.mingi.length || extra.hyemin.length) pushAllExtra();
     return;
    }
-   if(v.chk) applyChk(v.chk);
-   if(v.extra){
-    extra.mingi=toArr(v.extra.mingi).filter(function(item){ return !isTest(item.t); }).map(function(item){ return { t:item.t, d:!!item.d }; });
-    extra.hyemin=toArr(v.extra.hyemin).filter(function(item){ return !isTest(item.t); }).map(function(item){ return { t:item.t, d:!!item.d }; });
-    renderExtra();
-   }else if(extra.mingi.length || extra.hyemin.length){
-    pushExtra();
-   }
+   extra.mingi=parseExtraMap(v.mingi);
+   extra.hyemin=parseExtraMap(v.hyemin);
+   renderExtra();
    saveLocal();
+   if(Array.isArray(v.mingi) || Array.isArray(v.hyemin)) pushAllExtra();
   });
  }catch(e){}
 })();
