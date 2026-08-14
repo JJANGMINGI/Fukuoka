@@ -24,8 +24,10 @@
  font: 400 var(--fs-body)/1.42 -apple-system, BlinkMacSystemFont, 'SF Pro KR', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
  padding: 0 0 56px;
  -webkit-font-smoothing: antialiased;
+ overflow-x: hidden;
  }
- .wrap{ max-width:640px; margin:0 auto; padding:0 16px; }
+ html{ overflow-x: hidden; }
+ .wrap{ max-width:640px; margin:0 auto; padding:0 16px; min-width:0; }
 
  /* ===== Large Title header — plain, like an iOS nav bar in large-title state ===== */
  .hero{ padding:20px 16px 18px; }
@@ -58,6 +60,10 @@
   .info-strip,
   .info-strip.cols-3{ grid-template-columns:1fr; }
   .info-strip.cols-3 .info-box:last-child{ grid-column:auto; }
+  .hero{ padding-left:0; padding-right:0; }
+  .ticket .seg{ padding:12px 16px; }
+  .ticket .v-row{ justify-content:space-between; width:100%; gap:12px; }
+  .ticket .v{ font-size:1rem; white-space:nowrap; font-variant-numeric:tabular-nums; }
  }
  .info-box{ background:var(--group); border-radius:14px; padding:12px 14px; }
  .info-box .lbl{ font-size:var(--fs-cap2); font-weight:600; color:var(--label2); margin-bottom:3px; }
