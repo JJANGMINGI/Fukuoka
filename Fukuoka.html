@@ -1137,7 +1137,9 @@
   });
  });
 
- function extraBox(who){ return document.querySelector('.pack-extra[data-who="'+who+'"]'); }
+ function isJunk(t){
+  return (t||'').trim()==='장민기';
+ }
  function extraRow(who, id, t, d){
   var el=document.createElement('div');
   el.className=d?'chk done':'chk';
@@ -1163,7 +1165,7 @@
  function addExtra(who, inp){
   if(inp.getAttribute('data-busy')==='1') return;
   var t=(inp.value||inp.getAttribute('data-typed')||'').trim();
-  if(!t) return;
+  if(!t || isJunk(t)) return;
   inp.setAttribute('data-busy','1');
   inp.value='';
   inp.setAttribute('data-typed','');
@@ -1191,7 +1193,12 @@
   });
   ['mingi','hyemin'].forEach(function(who){
    var ref=db.child('extra/'+who);
-   ref.on('child_added',function(s){ paintExtraChild(who, s.key, s.val()); });
+   ref.on('child_added',function(s){
+    var v=s.val()||{};
+    var t=v.t || (typeof v==='string'?v:'');
+    if(isJunk(t)){ s.ref.remove(); return; }
+    paintExtraChild(who, s.key, v);
+   });
    ref.on('child_changed',function(s){
     var el=extraBox(who).querySelector('[data-id="'+s.key+'"]');
     var v=s.val()||{};
