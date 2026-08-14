@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>후쿠오카 여행 관리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+ :root{
+ /* iOS system palette */
+ --bg:#F2F2F7; /* systemGroupedBackground */
+ --group:#FFFFFF; /* secondarySystemGroupedBackground (card) */
+ --label:#1C1C1E; /* label */
+ --label2:#8E8E93; /* secondaryLabel */
+ --sep:rgba(60,60,67,0.29);/* separator, inset hairline */
+ --blue:#007AFF; --green:#34C759; --orange:#FF9500; --yellow:#FFD700; --red:#FF3B30; --gray6:#F2F2F7;
+ --fs-cap2:0.6875rem; --fs-cap:0.75rem; --fs-sub:0.8125rem; --fs-body:0.9375rem; --fs-slot:1.0625rem; --fs-head:1.0625rem; --fs-title2:1.375rem; --fs-large:2rem;
+ --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+ }
+ *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+ body{
+ margin:0; background:var(--bg); color:var(--label);
+ font: 400 var(--fs-body)/1.42 -apple-system, BlinkMacSystemFont, 'SF Pro KR', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
+ padding: 0 0 56px;
+ -webkit-font-smoothing: antialiased;
+ }
+ .wrap{ max-width:640px; margin:0 auto; padding:0 16px; }
+
+ /* ===== Large Title header — plain, like an iOS nav bar in large-title state ===== */
+ .hero{ padding:20px 16px 18px; }
+ .hero .eyebrow{ font-size:var(--fs-sub); font-weight:600; color:var(--blue); margin-bottom:2px; }
+ .hero h1{ font-size:var(--fs-large); font-weight:800; letter-spacing:-0.023em; margin:0 0 6px; color:var(--label); line-height:1.08; }
+ .hero .sub{ font-size:var(--fs-body); color:var(--label2); margin-bottom:14px; }
+
+ .ticket{ display:grid; grid-template-columns:1fr 1fr; gap:10px; background:transparent; box-shadow:none; }
+ .ticket .seg{ padding:12px 14px; background:var(--group); border-radius:14px; }
+ .ticket .k{ font-size:var(--fs-cap2); font-weight:600; text-transform:uppercase; letter-spacing:0.02em; color:var(--label2); margin-bottom:2px;}
+ .ticket .v{ font-size:var(--fs-head); font-weight:700; color:var(--label); letter-spacing:-0.01em; }
+ .ticket .v-row{ display:flex; gap:8px; align-items:baseline; }
+ .ticket .v small{ font-weight:500; font-size:var(--fs-cap); color:var(--label2);}
+ .check-badge{ display:inline-flex; align-items:center; gap:5px; background:var(--green); color:#fff; font-size:var(--fs-cap); font-weight:700; padding:4px 10px 4px 8px; border-radius:999px; margin-top:12px; }
+
+ /* ===== Quick nav — iOS filter-chip row ===== */
+ .quicknav{ display:flex; flex-wrap:wrap; gap:8px; margin:4px 0 20px; }
+ .quicknav a{
+ font-size:var(--fs-sub); font-weight:600; color:var(--label);
+ background:var(--group); border:none; padding:7px 14px; border-radius:100px; text-decoration:none;
+ box-shadow:0 1px 1px rgba(0,0,0,0.04);
+ transition: transform 100ms var(--ease), background 100ms var(--ease);
+ }
+ .quicknav a:active{ transform:scale(0.95); background:#E9E9EE; }
+
+ .info-strip{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; }
+ .info-strip.cols-3{ grid-template-columns:1fr 1fr 1fr; }
+ @media (max-width:680px){ .info-strip.cols-3{ grid-template-columns:1fr 1fr; } .info-strip.cols-3 .info-box:last-child{ grid-column:1 / -1; } }
+ .info-box{ background:var(--group); border-radius:14px; padding:12px 14px; }
+ .info-box .lbl{ font-size:var(--fs-cap2); font-weight:600; color:var(--label2); margin-bottom:3px; }
+ .info-box .val{ font-size:var(--fs-head); font-weight:700; color:var(--label); letter-spacing:-0.01em; }
+ .info-box .sub{ font-size:var(--fs-cap); color:var(--label2); margin-top:3px; line-height:1.45; }
+
+ /* ===== Grouped-table section: label above, white rounded group below ===== */
+ .card{ background:transparent; border:none; padding:0; margin:0 0 28px; scroll-margin-top:12px; }
+ .card h2{
+ font-size:var(--fs-title2); font-weight:800; letter-spacing:-0.015em;
+ margin:0 0 10px; padding:0 16px; display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+ color:var(--label);
+ }
+ .card h2 .bar{ display:none; }
+ .card h2 .h2-note{ font-size:var(--fs-cap2); font-weight:500; color:var(--label2); text-transform:none; letter-spacing:0; }
+ .card .map-embed, .card .route-link{ margin-left:16px; margin-right:16px; }
+ .card .route-link{ margin-top:-4px; }
+
+ /* group wrapper effect via ul.item-list itself (acts as the rounded card) */
+ ul.item-list{ list-style:none; margin:0 16px; padding:0; background:var(--group); border-radius:14px; overflow:hidden; box-shadow:0 1px 1px rgba(0,0,0,0.03); }
+ .card > h3.sub-h + ul.item-list, .card > ul.item-list{ margin-top:8px; margin-bottom:8px; }
+
+ h3.sub-h{
+ font-size:var(--fs-cap2); font-weight:600; letter-spacing:0.02em; text-transform:uppercase;
+ margin:18px 16px 6px; display:flex; align-items:center; gap:6px; color:var(--label2);
+ }
+ h3.sub-h.confirmed{ color:var(--green); }
+ h3.sub-h.candidate{ color:var(--orange); }
+ h3.sub-h.neutral{ color:var(--blue); }
+ h3.sub-h:first-of-type{ margin-top:4px; }
+ #pack h3.sub-h{
+  font-weight:700; font-size:var(--fs-head); color:var(--label); letter-spacing:-0.01em; text-transform:none;
+  margin-left:0; margin-right:0;
+ }
+ .empty{ font-size:var(--fs-sub); color:var(--label2); font-style:normal; padding:12px 16px; background:var(--group); border-radius:14px; margin:8px 16px 0; }
+
+ /* ===== list rows — the core iOS pattern: hairline dividers inset from the left ===== */
+ .place-item{ padding:10px 16px 10px 34px; position:relative; }
+ ul.item-list > li + li{ border-top:0.5px solid var(--sep); }
+ .place-item::before{ content:""; position:absolute; left:14px; top:17px; width:7px; height:7px; border-radius:50%; }
+ ul.item-list.confirmed .place-item::before{ background:var(--green); }
+ ul.item-list.candidate .place-item::before{ background:var(--orange); opacity:0.55; }
+ .day-block .place-item,
+ .day-block .transit,
+ ul.itin .place-item{ padding:10px 16px; min-height:44px; box-sizing:border-box; display:flex; }
+ .day-block .place-item,
+ ul.itin .place-item{ align-items:stretch; }
+ .day-block .transit{ align-items:center; }
+ .day-block .place-item::before,
+ ul.itin .place-item::before{ display:none; }
+ .day-block .place-item > .time,
+ .day-block .transit > .time,
+ ul.itin .place-item > .time{ align-self:stretch; }
+ .place-item .slot{ flex:1; min-width:0; padding-left:0; margin-left:0; }
+ .place-item .ttl,
+.place-item .name,
+.transit{
+ font-family:-apple-system, BlinkMacSystemFont, 'SF Pro KR', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
+ font-size:var(--fs-body); font-weight:600; font-style:normal; color:var(--label);
+ line-height:1.35; letter-spacing:-0.006em; -webkit-font-smoothing:antialiased;
+ }
+ .place-item .ttl,
+ .day-block .transit,
+ .time{ font-size:var(--fs-slot); }
+ .place-item .ttl{ display:flex; align-items:center; min-height:1.35em; margin:0; padding:0; }
+.place-item .name,
+.transit{ display:flex; align-items:center; gap:0; min-height:1.35em; }
+ .name a.namelink{ color:inherit; text-decoration:none; border-bottom:1px dotted var(--sep); }
+ .name a.namelink:active{ opacity:0.6; }
+ .place-item .name .star{ color:var(--label2); margin-left:3px; }
+ .place-item .meta{ font-size:var(--fs-body); font-weight:600; color:var(--label2); margin-top:5px; display:flex; align-items:center; gap:4px; }
+ .place-item .meta .menu{ color:var(--label); }
+ .place-item .meta .dot{ margin:0 5px; color:var(--sep); }
+ .place-item a.maplink{ font-size:1em; color:var(--label2); text-decoration:none; margin-left:0; white-space:nowrap; font-weight:600; line-height:1; }
+ .place-item ul.sub{ list-style:none; margin:5px 0 0 0; padding:0; background:none; box-shadow:none; }
+ .place-item ul.sub li{ font-size:var(--fs-body); font-weight:600; color:var(--label2); padding-left:13px; position:relative; line-height:1.7; }
+ .place-item ul.sub li::before{ content:"–"; position:absolute; left:0; }
+.place-item .detail{ font-size:var(--fs-body); font-weight:600; color:var(--label2); margin-top:5px; display:flex; flex-wrap:wrap; gap:4px 8px; align-items:center; }
+.place-item .detail:has(.res)::before{ content:""; flex-basis:100%; height:0; order:1; }
+.place-item .detail .rating{ color:var(--label2); font-weight:600; }
+.place-item .detail > span:not(.rating):not(.res):not(.res-wrap){ white-space:nowrap; }
+.place-item .detail .res-wrap{ display:inline-flex; align-items:center; gap:4px; order:2; }
+.place-item .detail > .res{ order:2; }
+.place-item .detail a.link{ color:var(--label2); text-decoration:none; font-weight:600; white-space:nowrap; font-size:1em; line-height:1; margin:0; padding:0; }
+.place-item .detail .res{ font-weight:600; margin:0; white-space:nowrap; color:var(--label2); }
+.place-item .detail .res.need{ color:var(--red); }
+.place-item .detail .res.ok{ color:var(--label2); }
+
+ details.fold{ margin:8px 16px 0; }
+ details.fold summary{
+ cursor:pointer; font-size:var(--fs-sub); font-weight:600; color:var(--blue);
+ list-style:none; padding:10px 14px; background:var(--group); border-radius:14px;
+ display:flex; align-items:center; justify-content:space-between;
+ transition: background 100ms var(--ease);
+ }
+ details.fold summary:active{ background:#E9E9EE; }
+ details.fold summary::-webkit-details-marker{ display:none; }
+ details.fold summary::after{ content:"›"; font-size:1.1rem; font-weight:600; color:var(--label2); transform:rotate(90deg); display:inline-block; transition: transform 200ms var(--ease); }
+ details.fold[open] summary::after{ transform:rotate(-90deg); }
+ details.fold[open] summary{ border-radius:14px 14px 0 0; }
+ details.fold[open] > ul{ border-radius:0 0 14px 14px; margin-top:0; animation: reveal 200ms var(--ease); }
+ @keyframes reveal{ from{ opacity:0; } to{ opacity:1; } }
+
+ .map-embed{ border-radius:14px; overflow:hidden; margin-bottom:10px; }
+ .map-embed iframe{ width:100%; height:220px; border:0; display:block; }
+ .route-link{ font-size:var(--fs-sub); margin:0 0 16px; }
+ .route-link a{ color:var(--blue); text-decoration:none; font-weight:600; }
+
+ .checklist-grid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin:0 16px; }
+ .checklist-grid .person{ background:var(--group); border-radius:14px; padding:12px 14px; }
+ .person .name{ font-weight:700; font-size:var(--fs-head); letter-spacing:-0.01em; margin-bottom:8px; color:var(--label); }
+ .chk{ display:flex; align-items:flex-start; gap:9px; font-size:var(--fs-sub); padding:5px 0; cursor:pointer; -webkit-user-select:none; user-select:none; }
+ .chk .box{ width:18px; height:18px; border-radius:50%; flex:0 0 auto; margin-top:0; border:1.5px solid #C7C7CC; display:flex; align-items:center; justify-content:center; transition: background 120ms var(--ease), border-color 120ms var(--ease); }
+ .chk.done .box{ background:var(--green); border-color:var(--green); }
+ .chk.done .box::after{ content:"✓"; color:#fff; font-size:11px; font-weight:700; }
+ .chk.done span.label{ color:var(--label2); }
+ .chk a.chk-link{ color:inherit; text-decoration:none; margin-left:4px; font-size:15px; font-weight:400; line-height:1; vertical-align:middle; display:inline-block; }
+ .common-box{ background:var(--group); border-radius:14px; padding:14px 16px; margin:8px 16px 14px; }
+ .common-box .name{ font-weight:700; font-size:var(--fs-body); margin-bottom:8px; color:var(--label); }
+ .common-box ul.item-list{ margin:6px 0 0; box-shadow:none; background:var(--gray6); }
+ .common-box h3.sub-h{ margin-left:0; margin-right:0; }
+ .common-box .hotel-block h3.sub-h:first-of-type{ margin-top:14px; }
+ .pack-duo{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:0 16px; }
+ .pack-box{ background:var(--group); border-radius:14px; padding:12px 14px; }
+ .pack-box .pack-who{ font-weight:700; font-size:var(--fs-head); color:var(--label); letter-spacing:-0.01em; margin:0 0 8px; }
+ .pack-grid{ display:grid; grid-template-columns:1fr 1fr; column-gap:12px; row-gap:0; padding:0; background:transparent; border-radius:0; margin:0; align-items:start; }
+ .pack-col{ display:flex; flex-direction:column; gap:14px; }
+ .hotel-block{ margin-top:10px; }
+
+.time{ flex:0 0 auto; display:block; box-sizing:content-box; background:none; color:var(--label); font-family:-apple-system, BlinkMacSystemFont, 'SF Pro KR', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif; font-size:var(--fs-slot); font-weight:600; font-style:normal; line-height:1.35; padding:0 16px 0 0; margin-right:16px; border-right:1px solid var(--sep); letter-spacing:-0.006em; text-align:left; white-space:nowrap; font-variant-numeric:tabular-nums; -webkit-font-smoothing:antialiased; }
+.time::after{ content:"00:00 – 00:00"; display:block; height:0; overflow:hidden; visibility:hidden; font:inherit; letter-spacing:inherit; font-variant-numeric:inherit; white-space:nowrap; }
+.time.time-single{ text-align:right; }
+ .day-tag{ display:inline-block; font-size:0.625rem; font-weight:700; color:#fff; background:var(--green); padding:1.5px 7px; border-radius:999px; margin-left:7px; vertical-align:middle; }
+.transit{ padding:10px 16px; }
+.transit .time{ color:var(--label); }
+.transit a.extlink{ color:var(--label2); text-decoration:none; margin-left:4px; padding:0; border:0; line-height:1; font-size:15px; font-weight:400; font-family:inherit; display:inline-flex; align-items:center; align-self:center; transform:none; }
+.transit .icon{ opacity:0.55; }
+ .tbd{ color:var(--red); font-weight:700; }
+
+ .day-block .place-item .meta,
+ .day-block .place-item .meta .menu,
+ .day-block .place-item .detail,
+ .day-block .place-item .detail .rating,
+ .day-block .place-item .detail .res,
+ .day-block .place-item .detail a.link,
+ .day-block .place-item a.maplink,
+ .day-block .place-item ul.sub,
+ .day-block .place-item ul.sub li,
+ ul.itin .place-item .meta,
+ ul.itin .place-item .meta .menu,
+ ul.itin .place-item .detail,
+ ul.itin .place-item .detail .rating,
+ ul.itin .place-item .detail .res,
+ ul.itin .place-item .detail a.link,
+ ul.itin .place-item a.maplink,
+ ul.itin .place-item ul.sub,
+ ul.itin .place-item ul.sub li{
+ font-family:-apple-system, BlinkMacSystemFont, 'SF Pro KR', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
+ font-size:var(--fs-body); font-weight:400; font-style:normal;
+ line-height:1.35; letter-spacing:-0.006em; color:var(--label2);
+ -webkit-font-smoothing:antialiased;
+ }
+ .day-block .place-item .detail .res.need,
+ ul.itin .place-item .detail .res.need{ color:var(--red); font-weight:400; }
+
+ /* Day blocks — like iOS grouped sections with a colored key on the left of the header only */
+ .day-block{ margin-bottom:22px; }
+ #food > .day-block.day1,
+ #sight > .day-block.day1{ margin-top:14px; }
+ #sight .day1 .itin .place-item,
+ #sight .day2 .itin .place-item,
+ #sight .day3 .itin .place-item{ align-items:center; }
+ #sight .day1 .itin .slot,
+ #sight .day2 .itin .slot,
+ #sight .day3 .itin .slot{ display:flex; align-items:center; }
+ #sight .day1 .itin .ttl,
+ #sight .day2 .itin .ttl,
+ #sight .day3 .itin .ttl{ font-size:12px; }
+ #food .time{ text-align:center; }
+ #food .time::after{ content:"간식"; }
+ .day-block:last-child{ margin-bottom:0; }
+ .day-block .item-list{ margin:8px 16px 0; }
+ .day-head{ display:flex; align-items:center; gap:9px; padding:0 16px; margin-bottom:2px; }
+ #itinerary details.day-block > summary.day-head{ list-style:none; cursor:pointer; justify-content:space-between; }
+ #itinerary details.day-block > summary.day-head::-webkit-details-marker{ display:none; }
+ #itinerary details.day-block > summary.day-head::after{ content:"›"; font-size:1.1rem; font-weight:600; color:var(--label2); transform:rotate(90deg); display:inline-block; transition:transform 200ms var(--ease); }
+ #itinerary details.day-block[open] > summary.day-head::after{ transform:rotate(-90deg); }
+ #itinerary .item-list > li.now-slot{ background:var(--blue); }
+ #itinerary .item-list > li.now-slot,
+ #itinerary .item-list > li.now-slot .time,
+ #itinerary .item-list > li.now-slot .ttl,
+ #itinerary .item-list > li.now-slot .meta,
+ #itinerary .item-list > li.now-slot .detail,
+ #itinerary .item-list > li.now-slot .detail span,
+ #itinerary .item-list > li.now-slot .tbd,
+ #itinerary .item-list > li.now-slot a{ color:#fff; }
+ .day-num{ width:26px; height:26px; border-radius:50%; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.8rem; flex:0 0 auto; }
+ .day-block.day2 .day-num{ background:var(--orange); }
+ .day-block.day3 .day-num{ background:var(--red); }
+ .day-title{ font-weight:700; font-size:var(--fs-head); color:var(--label); letter-spacing:-0.01em; }
+
+ .grp-label{ font-size:var(--fs-cap2); font-weight:600; letter-spacing:0.02em; color:var(--green); text-transform:uppercase; margin:18px 16px 6px; }
+ .grp-label:first-of-type{ margin-top:4px; }
+ .note{ color:var(--label2); font-weight:400; }
+
+ @media (prefers-reduced-motion: reduce) {
+ *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; }
+ }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+ <div class="hero">
+ <h1>Fukuoka</h1>
+ <div class="ticket">
+ <div class="seg"><div class="k">가는편 · GMP → FUK</div><div class="v-row"><div class="v">08:55 <small>출발</small></div><div class="v">09:55 <small>도착</small></div></div></div>
+ <div class="seg"><div class="k">오는편 · FUK → GMP</div><div class="v-row"><div class="v">16:55 <small>출발</small></div><div class="v">18:05 <small>도착</small></div></div></div>
+ </div>
+ </div>
+
+ <div class="card" id="prep">
+ <h2><span class="bar"></span>체크리스트</h2>
+
+ <div class="checklist-grid">
+ <div class="person">
+ <div class="name">공통</div>
+ <div class="chk done"><div class="box"></div><span class="label">가는 공항 버스</span></div>
+ <div class="chk"><div class="box"></div><span class="label">오는 공항 버스</span></div>
+ <div class="chk done"><div class="box"></div><span class="label">호텔 예약<a class="chk-link" href="https://www.agoda.com/ko-kr/account/editbooking.html?bookingId=nQYHnRxP2ZTFmFKtBLQGNQ%3D%3D&amp;af_dp=agoda%3A%2F%2Fmmb%2F%3FbookingToken%3DnQYHnRxP2ZTFmFKtBLQGNQ%3D%3D&amp;af_force_deeplink=true&amp;deep_link_value=agoda%3A%2F%2Fmmb%2F%3FbookingToken%3DnQYHnRxP2ZTFmFKtBLQGNQ%3D%3D&amp;af_sub4=Hotel&amp;c=CONFIRMATION_EMAIL_ONELINK&amp;af_sub3=f1e58994-81b2-46ac-b2cf-d6ee4c01eb57&amp;pid=redirect&amp;ds=YTvGR%2BrFqTq3O67h" target="_blank" rel="noopener" aria-label="호텔 예약">🐽</a></span></div>
+ <div class="chk"><div class="box"></div><span class="label">식당 예약</span></div>
+ </div>
+ <div class="person">
+ <div class="name">민기</div>
+ <div class="chk done"><div class="box"></div><span class="label">항공권<a class="chk-link" href="https://kr.trip.com/online/orderdetail/index?orderid=1400828646921357&amp;from=email&amp;template=TRIP_BOOKING_CONFIRMED&amp;locale=ko-KR&amp;channel=email&amp;subChannel=TRIP_BOOKING_CONFIRMED&amp;messagecode=TRIP_BOOKING_CONFIRMED&amp;oid=1400828646921357&amp;orderId=1400828646921357&amp;redirectFromOnline=1&amp;accesstoken=" target="_blank" rel="noopener" aria-label="항공권">🐽</a></span></div>
+ <div class="chk done"><div class="box"></div><span class="label">자동 체크인</span></div>
+ <div class="chk done"><div class="box"></div><span class="label">여권</span></div>
+ <div class="chk done"><div class="box"></div><span class="label">환전<a class="chk-link" href="https://www.google.co.kr/maps/search/%ED%9B%84%EC%BF%A0%EC%98%A4%EC%B9%B4+ATM/@33.5944583,130.4024496,14z/data=!3m1!4b1?entry=ttu&amp;g_ep=EgoyMDI2MDgxMS4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener" aria-label="환전">🐽</a></span></div>
+ <div class="chk done"><div class="box"></div><span class="label">교통카드 ¥2600</span></div>
+ <div class="chk"><div class="box"></div><span class="label">로밍도깨비 eSIM</span></div>
+ <div class="chk"><div class="box"></div><span class="label">Visit Japan Web<a class="chk-link" href="https://www.vjw.digital.go.jp/main/#/vjwplo001" target="_blank" rel="noopener" aria-label="Visit Japan Web">🐽</a></span></div>
+ </div>
+ <div class="person">
+ <div class="name">혜민</div>
+ <div class="chk done"><div class="box"></div><span class="label">항공권<a class="chk-link" href="https://kr.trip.com/online/orderdetail/index?orderid=1400828646921357&amp;from=email&amp;template=TRIP_BOOKING_CONFIRMED&amp;locale=ko-KR&amp;channel=email&amp;subChannel=TRIP_BOOKING_CONFIRMED&amp;messagecode=TRIP_BOOKING_CONFIRMED&amp;oid=1400828646921357&amp;orderId=1400828646921357&amp;redirectFromOnline=1&amp;accesstoken=" target="_blank" rel="noopener" aria-label="항공권">🐽</a></span></div>
+ <div class="chk done"><div class="box"></div><span class="label">자동 체크인</span></div>
+ <div class="chk done"><div class="box"></div><span class="label">여권</span></div>
+ <div class="chk"><div class="box"></div><span class="label">환전<a class="chk-link" href="https://www.google.co.kr/maps/search/%ED%9B%84%EC%BF%A0%EC%98%A4%EC%B9%B4+ATM/@33.5944583,130.4024496,14z/data=!3m1!4b1?entry=ttu&amp;g_ep=EgoyMDI2MDgxMS4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener" aria-label="환전">🐽</a></span></div>
+ <div class="chk"><div class="box"></div><span class="label">교통카드 ¥2600</span></div>
+ <div class="chk"><div class="box"></div><span class="label">로밍도깨비 eSIM</span></div>
+ <div class="chk"><div class="box"></div><span class="label">Visit Japan Web<a class="chk-link" href="https://www.vjw.digital.go.jp/main/#/vjwplo001" target="_blank" rel="noopener" aria-label="Visit Japan Web">🐽</a></span></div>
+ </div>
+ </div>
+ </div>
+
+ <div class="card" id="itinerary">
+ <h2><span class="bar"></span>일정</h2>
+ <details class="day-block day1">
+ <summary class="day-head"><span class="day-title">Day 1 · 8월 19일 (수)</span></summary>
+ <ul class="item-list confirmed">
+ <li class="place-item">
+<span class="time">05:40 – 07:00</span>
+<div class="slot"><span class="ttl">김해공항으로</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">07:00 – 07:30</span>
+<div class="slot"><span class="ttl">수속</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">07:30 – 08:00</span>
+<div class="slot"><span class="ttl">아침</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">08:00 – 08:30</span>
+<div class="slot"><span class="ttl">명상</span>
+</div>
+</li>
+<li class="place-item">
+<span class="time">08:30 – 08:55</span>
+<div class="slot"><span class="ttl">탑승</span>
+</div>
+</li>
+<li class="place-item">
+<span class="time">08:55 – 09:55</span>
+<div class="slot"><span class="ttl">비행</span>
+</div>
+</li>
+<li class="place-item">
+<span class="time">09:55 – 10:25</span>
+<div class="slot"><span class="ttl">수속</span>
+</div>
+</li>
+<li class="transit"><span class="time">10:25 – 11:05</span>지하철 이동 ¥210<a class="extlink" href="https://www.google.com/maps/dir/%E7%A6%8F%E5%B2%A1%E7%A9%BA%E6%B8%AF%E5%9B%BD%E9%9A%9B%E7%B7%9A%E3%82%BF%E3%83%BC%E3%83%9F%E3%83%8A%E3%83%AB/mizuka%20Business%20Canal%20City%20Hakatamae/data=!4m2!4m1!3e3" target="_blank" aria-label="길찾기">🐽</a></li>
+<li class="place-item">
+<span class="time">11:05 – 11:20</span>
+<div class="slot"><span class="ttl">호텔에 짐 보관</span>
+ <div class="meta">mizuka Business 캐널시티 하카타마에<a class="maplink" href="https://www.google.com/maps/search/?api=1&query=mizuka%20Business%20Canal%20City%20Hakatamae" target="_blank" aria-label="지도">🐽</a></div>
+</div>
+</li>
+ <li class="transit"><span class="time">11:20 – 11:30</span>도보 이동<a class="extlink" href="https://www.google.com/maps/dir/mizuka%20Business%20Canal%20City%20Hakatamae/%E3%82%BF%E3%82%A4%E3%83%88%E3%83%BC%E3%82%B9%E3%83%86%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3%20%E3%82%AD%E3%83%A3%E3%83%8A%E3%83%AB%E3%82%B7%E3%83%86%E3%82%A3%E5%8D%9A%E5%A4%9A%E5%BA%97/data=!4m2!4m1!3e2" target="_blank" aria-label="길찾기">🐽</a></li>
+ <li class="place-item">
+<span class="time">11:30 – 11:40</span>
+<div class="slot"><span class="ttl">타이토 스테이션에서 프리쿠라 찍기</span>
+ <div class="meta">타이토 스테이션 캐널시티 하카타점<a class="maplink" href="https://www.google.com/maps/search/?api=1&query=%E3%82%BF%E3%82%A4%E3%83%88%E3%83%BC%E3%82%B9%E3%83%86%E3%83%BC%E3%82%B7%E3%83%A7%E3%83%B3%20%E3%82%AD%E3%83%A3%E3%83%8A%E3%83%AB%E3%82%B7%E3%83%86%E3%82%A3%E5%8D%9A%E5%A4%9A%E5%BA%97" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★3.7 (1,758)</span><span>(수) 10:00 ~ 24:00</span></div>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">11:40 – 12:10</span>
+<div class="slot"><span class="ttl">캐널시티 구경</span>
+ <div class="meta">캐널시티 하카타<a class="maplink" href="https://www.google.com/maps/place/%E3%82%AD%E3%83%A3%E3%83%8A%E3%83%AB%E3%82%B7%E3%83%86%E3%82%A3%E5%8D%9A%E5%A4%9A/@33.5896305,130.4109478,17z/data=!4m6!3m5!1s0x354191958981c361:0xe0edba177a7419d1!8m2!3d33.5896305!4d130.4109478!16s%2Fm%2F04zxt4t" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.1 (47,731)</span><span>(수) 10:00 ~ 21:00</span></div>
+</div>
+</li>
+ <li class="transit"><span class="time">12:10 – 12:30</span>지하철 이동 ¥210<a class="extlink" href="https://www.google.com/maps/dir/%E3%82%AD%E3%83%A3%E3%83%8A%E3%83%AB%E3%82%B7%E3%83%86%E3%82%A3%E5%8D%9A%E5%A4%9A/%E7%82%AD%E7%84%BC%E3%81%86%E3%81%AA%E5%AF%8C%E5%A3%AB%20%E7%A6%8F%E5%B2%A1%E5%A4%A7%E5%90%8D%E5%88%A5%E9%82%B8/data=!4m2!4m1!3e3" target="_blank" aria-label="길찾기">🐽</a></li>
+ <li class="place-item">
+<span class="time">12:30 – 13:15</span>
+<div class="slot"><span class="ttl">장어 덮밥 먹기</span>
+ <div class="meta">스미야키 우나후지 후쿠오카 다이묘 별저<a class="maplink" href="https://maps.google.com/?cid=14655074710059792484" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.3 (121)</span><span>(수) 11:00 ~ 22:00</span><span class="res-wrap"><span class="res need">예약 필수</span><a class="link" href="https://sumiyaki-unafuji.com/shops/fukuoka_daimyo/" target="_blank" aria-label="사이트">🐽</a></span></div>
+</div>
+</li>
+ <li class="transit"><span class="time">13:15 – 13:20</span>도보 이동<a class="extlink" href="https://www.google.com/maps/dir/%E7%82%AD%E7%84%BC%E3%81%86%E3%81%AA%E5%AF%8C%E5%A3%AB%20%E7%A6%8F%E5%B2%A1%E5%A4%A7%E5%90%8D%E5%88%A5%E9%82%B8/HUMAN%20MADE%20FUKUOKA/data=!4m2!4m1!3e2" target="_blank" aria-label="길찾기">🐽</a></li>
+ <li class="place-item">
+<span class="time">13:20 – 13:35</span>
+<div class="slot"><span class="ttl">휴먼메이드 구경</span>
+ <div class="meta">휴먼메이드 후쿠오카<a class="maplink" href="https://maps.google.com/?cid=6485858231573295007" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.2 (220)</span><span>(수) 11:00 ~ 19:00</span></div>
+</div>
+</li>
+ <li class="transit"><span class="time">13:35 – 14:05</span>버스 이동 ¥210<a class="extlink" href="https://www.google.com/maps/dir/HUMAN%20MADE%20FUKUOKA/%E6%9D%BE%E9%A2%A8%E5%9C%92%20%E7%A6%8F%E5%B2%A1%E5%B8%82%E4%B8%AD%E5%A4%AE%E5%8C%BA%E5%B9%B3%E5%B0%BE/data=!4m2!4m1!3e3" target="_blank" aria-label="길찾기">🐽</a></li>
+ <li class="place-item">
+<span class="time">14:05 – 14:35</span>
+<div class="slot"><span class="ttl">쇼후엔에서 산책하기</span>
+ <div class="meta">쇼후엔<a class="maplink" href="https://maps.google.com/?cid=11250921228785790997" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.4 (349)</span><span>(수) 09:00 ~ 17:00</span><span class="res ok">예약 불필요</span></div>
+</div>
+</li>
+ <li class="transit"><span class="time">14:35 – 15:10</span>버스 이동 ¥420<a class="extlink" href="https://www.google.com/maps/dir/%E6%9D%BE%E9%A2%A8%E5%9C%92%20%E7%A6%8F%E5%B2%A1%E5%B8%82%E4%B8%AD%E5%A4%AE%E5%8C%BA%E5%B9%B3%E5%B0%BE/%E7%8F%88%E7%90%B2%E5%B7%A5%E6%88%BFONE%20NOTE%20%E7%A6%8F%E5%B2%A1%E5%B8%82%E4%B8%AD%E5%A4%AE%E5%8C%BA%E8%8D%92%E6%88%B8/data=!4m2!4m1!3e3" target="_blank" aria-label="길찾기">🐽</a></li>
+ <li class="place-item">
+<span class="time">15:10 – 15:20</span>
+<div class="slot"><span class="ttl">One Note에서 커피 테이크 아웃</span>
+ <div class="meta">커피공방 원노트<a class="maplink" href="https://www.google.com/maps/search/?api=1&query=%E7%8F%88%E7%90%B2%E5%B7%A5%E6%88%BFONE%20NOTE%20%E7%A6%8F%E5%B2%A1%E5%B8%82%E4%B8%AD%E5%A4%AE%E5%8C%BA%E8%8D%92%E6%88%B8" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.5 (70)</span><span>(수) 10:00 ~ 19:00</span><span class="res ok">예약 불필요</span></div>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">15:20 – 15:50</span>
+<div class="slot"><span class="ttl">오호리공원에서 산책하기</span>
+ <div class="meta">오호리공원<a class="maplink" href="https://maps.google.com/?cid=14839213291318671256" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.5 (15,223)</span><span>(수) 00:00 ~ 24:00</span></div>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">15:50 – 16:20</span>
+<div class="slot"><span class="ttl">후쿠오카 미술관 ¥200</span>
+ <div class="meta">후쿠오카시 미술관<a class="maplink" href="https://maps.google.com/?cid=3802253567045886050" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.3 (4,827)</span><span>(수) 09:30 ~ 17:30</span></div>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">16:20 – 17:00</span>
+<div class="slot"><span class="ttl"><span class="tbd">미정</span></span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">17:00 – 18:30</span>
+<div class="slot"><span class="ttl">이자카야</span>
+ <div class="meta">나가라쿠<a class="maplink" href="https://maps.google.com/?cid=7024626703902311652" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.7 (310)</span><span>(수) 17:00 ~ 24:00</span><span class="res-wrap"><span class="res need">예약 필수</span><a class="link" href="https://www.instagram.com/nagaraku_fukuoka/" target="_blank" aria-label="사이트">🐽</a></span></div>
+</div>
+</li>
+ <li class="transit"><span class="time">18:30 – 18:50</span>버스 이동 ¥180<a class="extlink" href="https://www.google.com/maps/dir/%EB%82%98%EA%B0%80%EB%9D%BC%EC%BF%A0/Tebo%20(%E5%8D%9A%E5%A4%9A%20%E4%B8%8B%E7%94%BA%E3%81%AE%E5%91%B3%20%E3%81%8A%E5%A5%BD%E3%81%BF%E7%84%BC%20%E3%81%A6%E3%81%BC)/data=!4m2!4m1!3e3" target="_blank" aria-label="길찾기">🐽</a></li>
+ <li class="place-item">
+<span class="time">18:50 – 20:20</span>
+<div class="slot"><span class="ttl">오코노미야끼</span>
+ <div class="meta">오코노미야키 테보<a class="maplink" href="https://www.google.com/maps/search/?api=1&query=Tebo%20(%E5%8D%9A%E5%A4%9A%20%E4%B8%8B%E7%94%BA%E3%81%AE%E5%91%B3%20%E3%81%8A%E5%A5%BD%E3%81%BF%E7%84%BC%20%E3%81%A6%E3%81%BC)" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.5 (374)</span><span>(수) 12:00 ~ 14:00, 18:00 ~ 23:00</span><span class="res need">예약 필수</span></div>
+</div>
+</li>
+ <li class="transit"><span class="time">20:20 – 20:25</span>도보 이동<a class="extlink" href="https://www.google.com/maps/dir/Tebo%20(%E5%8D%9A%E5%A4%9A%20%E4%B8%8B%E7%94%BA%E3%81%AE%E5%91%B3%20%E3%81%8A%E5%A5%BD%E3%81%BF%E7%84%BC%20%E3%81%A6%E3%81%BC)/SUNNY%20%EC%8A%88%ED%8D%BC%20%EC%99%80%ED%83%80%EB%82%98%EB%B2%A0%EB%8F%84%EB%A6%AC%EC%A0%90/data=!4m2!4m1!3e3" target="_blank" aria-label="길찾기">🐽</a></li>
+ <li class="place-item">
+<span class="time">20:25 – 20:45</span>
+<div class="slot"><span class="ttl">마트에서 초밥, 씨푸드, 스트롱제로</span>
+ <div class="meta">써니 와타나베도리점<a class="maplink" href="https://www.google.com/maps/search/?api=1&query=SUNNY%20%EC%8A%88%ED%8D%BC%20%EC%99%80%ED%83%80%EB%82%98%EB%B2%A0%EB%8F%84%EB%A6%AC%EC%A0%90" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★3.7 (1,437)</span><span>(수) 00:00 ~ 24:00</span></div>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">20:45 – 21:50</span>
+<div class="slot"><span class="ttl"><span class="tbd">미정</span></span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time time-single">21:50</span>
+<div class="slot"><span class="ttl">호텔 도착</span>
+</div>
+</li>
+ </ul>
+ </details>
+
+ <details class="day-block day2">
+ <summary class="day-head"><span class="day-title">Day 2 · 8월 20일 (목)</span></summary>
+ <ul class="item-list confirmed">
+ <li class="place-item">
+<span class="time time-single">09:00</span>
+<div class="slot"><span class="ttl">기상</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">09:00 – 10:00</span>
+<div class="slot"><span class="ttl">아따맘마 (준비)</span>
+</div>
+</li>
+ <li class="transit"><span class="time">10:00 – 10:15</span>도보 이동<a class="extlink" href="https://www.google.com/maps/dir/33.5909075,130.4127309/33.5932405,130.4045974/data=!4m2!4m1!3e2" target="_blank" aria-label="길찾기">🐽</a></li>
+ <li class="place-item">
+<span class="time">10:15 – 11:00</span>
+<div class="slot"><span class="ttl">이치란 본점에서 라멘으로 해장하기</span>
+ <div class="meta">이치란 본사총본점<a class="maplink" href="https://maps.google.com/?cid=7524611293723795643" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.2 (12,946)</span><span>(목) 00:00 ~ 24:00</span></div>
+</div>
+</li>
+ <li class="transit"><span class="time">11:00 – 11:05</span>도보 이동<a class="extlink" href="https://www.google.com/maps/dir/33.5932405,130.4045974/33.5916517,130.4040419/data=!4m2!4m1!3e2" target="_blank" aria-label="길찾기">🐽</a></li>
+ <li class="place-item">
+<span class="time">11:05 – 11:20</span>
+<div class="slot"><span class="ttl">명란 바게트 사기</span>
+ <div class="meta">빵스톡 텐진점<a class="maplink" href="https://maps.google.com/?cid=3506534535511288643" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.1 (1,955)</span><span>(목) 08:00 ~ 19:00</span></div>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">11:20 – 11:35</span>
+<div class="slot"><span class="ttl">텐진 중앙 공원에서 명란 바게트 먹기</span>
+ <div class="meta">텐진 중앙공원<a class="maplink" href="https://www.google.com/maps/search/?api=1&query=%ED%85%90%EC%A7%84%20%EC%A4%91%EC%95%99%EA%B3%B5%EC%9B%90" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.2 (997)</span><span>(목) 00:00 ~ 24:00</span></div>
+</div>
+</li>
+ <li class="transit"><span class="time">11:35 – 11:45</span>도보 이동<a class="extlink" href="https://www.google.com/maps/dir/33.5903354,130.4029191/33.5927556,130.3985111/data=!4m2!4m1!3e2" target="_blank" aria-label="길찾기">🐽</a></li>
+ <li class="place-item">
+<span class="time">11:45 – 12:00</span>
+<div class="slot"><span class="ttl">GU 구경</span>
+ <div class="meta">GU 미나텐진점<a class="maplink" href="https://www.google.com/maps/search/?api=1&query=GU%20%E3%83%9F%E3%83%BC%E3%83%8A%E5%A4%A9%E7%A5%9E%E5%BA%97" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.4 (153)</span><span>(목) 10:00 ~ 20:00</span></div>
+</div>
+</li>
+ <li class="transit"><span class="time">12:00 – 12:15</span>도보 이동<a class="extlink" href="https://www.google.com/maps/dir/33.5927556,130.3985111/33.593654,130.405946/data=!4m2!4m1!3e2" target="_blank" aria-label="길찾기">🐽</a></li>
+ <li class="place-item">
+<span class="time">12:15 – 12:40</span>
+<div class="slot"><span class="ttl">돈키호테 쇼핑</span>
+ <div class="meta">돈키호테 나카스점<a class="maplink" href="https://www.google.com/maps/search/?api=1&query=%E3%83%89%E3%83%B3%E3%83%BB%E3%82%AD%E3%83%9B%E3%83%BC%E3%83%86%20%E4%B8%AD%E6%B4%B2%E5%BA%97" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★3.7 (7,102)</span><span>(목) 00:00 ~ 24:00</span></div>
+ <ul class="sub"><li>피노 트리트먼트</li><li>고릴라 압박밴드</li><li>술</li><li>먹을거</li></ul>
+</div>
+</li>
+ <li class="transit"><span class="time">12:40 – 12:55</span>도보 이동<a class="extlink" href="https://www.google.com/maps/dir/33.593654,130.405946/33.5909075,130.4127309/data=!4m2!4m1!3e2" target="_blank" aria-label="길찾기">🐽</a></li>
+ <li class="place-item">
+<span class="time">12:55 – 13:05</span>
+<div class="slot"><span class="ttl">호텔에 짐 두기</span>
+</div>
+</li>
+ <li class="transit"><span class="time">13:05 – 13:30</span>지하철 이동 ¥260<a class="extlink" href="https://www.google.com/maps/dir/33.5909075,130.4127309/33.5736786,130.3784059/data=!4m2!4m1!3e3" target="_blank" aria-label="길찾기">🐽</a></li>
+ <li class="place-item">
+<span class="time">13:30 – 14:00</span>
+<div class="slot"><span class="ttl">카이센동<span class="star"></span></span>
+ <div class="meta">Hanabi<a class="maplink" href="https://maps.google.com/?cid=11204456543137934448" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.5 (226)</span><span>(목) 11:30 ~ 14:30, 17:30 ~ 22:00</span><span class="res-wrap"><span class="res need">예약 필수</span><a class="link" href="https://instagram.com/hana.bi64" target="_blank" aria-label="사이트">🐽</a></span></div>
+</div>
+</li>
+ <li class="transit"><span class="time">14:00 – 14:20</span>버스 이동 ¥260<a class="extlink" href="https://www.google.com/maps/dir/33.5736786,130.3784059/%E3%82%B7%E3%83%AD%E3%82%A6%E3%82%BA%E3%82%B3%E3%83%BC%E3%83%92%E3%83%BC+%E8%AD%A6%E5%9B%BA%E5%BA%97/data=!4m2!4m1!3e3" target="_blank" aria-label="길찾기">🐽</a></li>
+ <li class="place-item">
+<span class="time">14:20 – 14:50</span>
+<div class="slot"><span class="ttl">커피 한잔</span>
+ <div class="meta">SHIROUZU COFFEE 케고점<a class="maplink" href="https://www.google.com/maps/search/?api=1&query=SHIROUZU%20COFFEE%20%EC%BC%80%EA%B3%A0%EC%A0%90" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.3 (378)</span><span>(목) 08:00 ~ 23:00</span></div>
+</div>
+</li>
+ <li class="transit"><span class="time">14:50 – 15:25</span>버스 이동 ¥310<a class="extlink" href="https://www.google.com/maps/dir/%E3%82%B7%E3%83%AD%E3%82%A6%E3%82%BA%E3%82%B3%E3%83%BC%E3%83%92%E3%83%BC+%E8%AD%A6%E5%9B%BA%E5%BA%97/%E7%A6%8F%E5%B2%A1%E3%82%BF%E3%83%AF%E3%83%BC/data=!4m2!4m1!3e3" target="_blank" aria-label="길찾기">🐽</a></li>
+ <li class="place-item">
+<span class="time">15:25 – 15:55</span>
+<div class="slot"><span class="ttl">후쿠오카 타워 전망대 ¥1000</span>
+ <div class="meta">후쿠오카 타워<a class="maplink" href="https://www.google.com/maps/search/?api=1&query=%ED%9B%84%EC%BF%A0%EC%98%A4%EC%B9%B4%20%ED%83%80%EC%9B%8C" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.2 (23,058)</span><span>(목) 09:30 ~ 22:00</span></div>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">15:55 – 16:25</span>
+<div class="slot"><span class="ttl">모모치 해변에서 산책하기</span>
+ <div class="meta">시사이드 모모치 해변공원<a class="maplink" href="https://www.google.com/maps/place/%EC%8B%9C%EC%82%AC%EC%9D%B4%EB%93%9C+%EB%AA%A8%EB%AA%A8%EC%B9%98+%ED%95%B4%EB%B3%80%EA%B3%B5%EC%9B%90/@33.5945933,130.3512594,17z/data=!4m6!3m5!1s0x354193aa5b902457:0xd0acf1307f545bd4!8m2!3d33.5945933!4d130.3512594!16s%2Fg%2F1tddvk25?entry=ttu&amp;g_ep=EgoyMDI2MDgxMS4wIKXMDSoASAFQAw%3D%3D" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.1 (6,843)</span><span>(목) 00:00 ~ 24:00</span></div>
+</div>
+</li>
+ <li class="transit"><span class="time">16:25 – 17:15</span>버스 이동 ¥260<a class="extlink" href="https://www.google.com/maps/dir/33.5945933,130.3512594/%E3%83%A8%E3%83%89%E3%83%90%E3%82%B7%E3%82%AB%E3%83%A1%E3%83%A9+%E3%83%9E%E3%83%AB%E3%83%81%E3%83%A1%E3%83%87%E3%82%A3%E3%82%A2%E5%8D%9A%E5%A4%9A/data=!4m2!4m1!3e3" target="_blank" aria-label="길찾기">🐽</a></li>
+ <li class="place-item">
+<span class="time">17:15 – 17:30</span>
+<div class="slot"><span class="ttl">가챠</span>
+ <div class="meta">요도바시 카메라 멀티미디어 하카타<a class="maplink" href="https://www.google.com/maps/place/%EC%9A%94%EB%8F%84%EB%B0%94%EC%8B%9C+%EC%B9%B4%EB%A9%94%EB%9D%BC+%EB%A9%80%ED%8B%B0%EB%AF%B8%EB%94%94%EC%96%B4+%ED%95%98%EC%B9%B4%ED%83%80/@33.5883087,130.4198557,16.94z/data=!3m1!5s0x354191b7e5592f09:0x2193d055ab88388c!4m6!3m5!1s0x354191b7f18dcfe3:0x6b53831d93ce00c9!8m2!3d33.5883051!4d130.4216938!16s%2Fg%2F1hl3hj2h7?entry=ttu&amp;g_ep=EgoyMDI2MDgxMS4wIKXMDSoASAFQAw%3D%3D" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.0 (6,433)</span><span>(목) 09:30 ~ 22:00</span></div>
+</div>
+</li>
+ <li class="transit"><span class="time">17:30 – 17:50</span>도보 이동<a class="extlink" href="https://www.google.com/maps/dir/%EC%9A%94%EB%8F%84%EB%B0%94%EC%8B%9C%20%EC%B9%B4%EB%A9%94%EB%9D%BC%20%EB%A9%80%ED%8B%B0%EB%AF%B8%EB%94%94%EC%96%B4%20%ED%95%98%EC%B9%B4%ED%83%80/%EB%AA%A8%EC%B8%A0%EB%82%98%EB%B2%A0%20%ED%86%A0%EC%BF%A0%EB%82%98%EA%B0%80%EC%95%BC/data=!4m2!4m1!3e2" target="_blank" aria-label="길찾기">🐽</a></li>
+ <li class="place-item">
+<span class="time">17:50 – 19:20</span>
+<div class="slot"><span class="ttl">모츠나베</span>
+ <div class="meta">하카타 모츠나베 토쿠나가야 총본점<a class="maplink" href="https://www.google.com/maps/search/?api=1&query=%EB%AA%A8%EC%B8%A0%EB%82%98%EB%B2%A0%20%ED%86%A0%EC%BF%A0%EB%82%98%EA%B0%80%EC%95%BC" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.2 (459)</span><span>(목) 16:00 ~ 24:00</span><span class="res-wrap"><span class="res need">예약 필수</span><a class="link" href="https://www.google.com/maps/search/?api=1&amp;query=%EB%AA%A8%EC%B8%A0%EB%82%98%EB%B2%A0%20%ED%86%A0%EC%BF%A0%EB%82%98%EA%B0%80%EC%95%BC" target="_blank" aria-label="사이트">🐽</a></span></div>
+</div>
+</li>
+ <li class="transit"><span class="time">19:20 – 19:30</span>도보 이동<a class="extlink" href="https://www.google.com/maps/dir/%E5%8D%9A%E5%A4%9A%E3%82%82%E3%81%A4%E9%8D%8B+%E5%BE%B3%E6%B0%B8%E5%B1%8B+%E7%B7%8F%E6%9C%AC%E5%BA%97/%E4%B8%AD%E6%B4%B2%E5%B1%8B%E5%8F%B0/data=!4m2!4m1!3e2" target="_blank" aria-label="길찾기">🐽</a></li>
+ <li class="place-item">
+<span class="time">19:30 – 20:30</span>
+<div class="slot"><span class="ttl">나카스강 포장마차</span>
+ <div class="meta">나카스 야타이<a class="maplink" href="https://maps.google.com/?cid=8299763336248263788" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★3.5 (5,511)</span><span>(목) 18:00 ~ 24:00</span></div>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">20:30 – 21:00</span>
+<div class="slot"><span class="ttl">나카스강 산책</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">21:00 – 22:40</span>
+<div class="slot"><span class="ttl"><span class="tbd">미정</span></span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">22:40 – 23:00</span>
+<div class="slot"><span class="ttl">호텔 근처 마트에서 스트롱제로</span>
+ <div class="meta">맥스밸류 익스프레스 하카타기온점<a class="maplink" href="https://www.google.com/maps/search/?api=1&amp;query=%E3%83%9E%E3%83%83%E3%82%AF%E3%82%B9%E3%83%90%E3%83%AA%E3%83%A5%E3%82%A8%E3%82%AF%E3%82%B9%E3%83%97%E3%83%AC%E3%82%B9+%E5%8D%9A%E5%A4%9A%E7%A5%87%E5%9C%92%E5%BA%97" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.0 (1,648)</span><span>(목) 00:00 ~ 24:00</span></div>
+</div>
+</li>
+ <li class="place-item">
+<span class="time time-single">23:00</span>
+<div class="slot"><span class="ttl">호텔 도착</span>
+</div>
+</li>
+ </ul>
+ </details>
+
+ <details class="day-block day3">
+ <summary class="day-head"><span class="day-title">Day 3 · 8월 21일 (금)</span></summary>
+ <ul class="item-list confirmed">
+ <li class="place-item">
+<span class="time time-single">09:45</span>
+<div class="slot"><span class="ttl">기상</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">09:45 – 10:45</span>
+<div class="slot"><span class="ttl">아따맘마 (준비)</span>
+</div>
+</li>
+ <li class="transit"><span class="time">10:45 – 11:00</span>지하철 이동 ¥210<a class="extlink" href="https://www.google.com/maps/dir/33.5909075,130.4127309/33.591512,130.4005285/data=!4m2!4m1!3e3" target="_blank" aria-label="길찾기">🐽</a></li>
+ <li class="place-item">
+<span class="time">11:00 – 11:30</span>
+<div class="slot"><span class="ttl">도미 오차즈케</span>
+ <div class="meta">因幡町 一慶<a class="maplink" href="https://www.google.com/maps/search/?api=1&query=%EC%9D%B4%EB%82%98%EB%B0%94%EC%B4%88%20%EC%9E%87%EC%BC%80%EC%9D%B4" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.6 (298)</span><span>(금) 11:00 ~ 15:00, 17:00 ~ 23:00</span><span class="res-wrap"><span class="res need">예약 추천</span><a class="link" href="https://tabelog.com/fukuoka/A4001/A400103/40060531/" target="_blank" aria-label="사이트">🐽</a></span></div>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">11:30 – 14:55</span>
+<div class="slot"><span class="ttl"><span class="tbd">미정</span></span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time"></span>
+<div class="slot"><span class="ttl">공항 출발 전 맥도날드 포장하기 (지점 미정)</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time"></span>
+<div class="slot"><span class="ttl">편의점에서 동전 사용</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">14:55 – 15:25</span>
+<div class="slot"><span class="ttl">수속</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">15:25 – 15:55</span>
+<div class="slot"><span class="ttl">공항에서 맥도날드 먹기</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">15:55 – 16:25</span>
+<div class="slot"><span class="ttl">명상</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">16:25 – 16:55</span>
+<div class="slot"><span class="ttl">탑승</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">16:55 – 18:05</span>
+<div class="slot"><span class="ttl">비행</span>
+</div>
+</li>
+ <li class="transit"><span class="time">18:05 – 18:35</span>수속</li>
+ <li class="place-item">
+<span class="time">18:35 – 19:55</span>
+<div class="slot"><span class="ttl">동대구역으로</span>
+</div>
+</li>
+ </ul>
+ </details>
+ </div>
+
+ <div class="card" id="sight">
+ <h2><span class="bar"></span>관광</h2>
+ <div class="day-block day1">
+ <div class="day-head"><span class="day-title">Day 1 · 8월 19일 (수)</span></div>
+ <ul class="item-list confirmed itin">
+ <li class="place-item">
+<div class="slot"><span class="ttl">프리쿠라 → 캐널시티 → 휴먼메이드 → 쇼후엔 → 오호리공원 → 후쿠오카 미술관</span>
+</div>
+</li>
+ </ul>
+ </div>
+ <div class="day-block day2">
+ <div class="day-head"><span class="day-title">Day 2 · 8월 20일 (목)</span></div>
+ <ul class="item-list confirmed itin">
+ <li class="place-item">
+<div class="slot"><span class="ttl">텐진 중앙 공원 → GU → 돈키호테 → 후쿠오카 타워 전망대 → 모모치 해변 → 가챠 → 나카스강</span>
+</div>
+</li>
+ </ul>
+ </div>
+ <div class="day-block day3">
+ <div class="day-head"><span class="day-title">Day 3 · 8월 21일 (금)</span></div>
+ <ul class="item-list confirmed itin">
+ <li class="place-item">
+<div class="slot"><span class="ttl"></span>
+</div>
+</li>
+ </ul>
+ </div>
+ <div class="day-block">
+ <div class="day-head"><span class="day-title">후보</span></div>
+ <ul class="item-list confirmed itin">
+ <li class="place-item">
+<div class="slot"><span class="ttl">대왕 건담</span>
+ <div class="meta">라라포트 후쿠오카<a class="maplink" href="https://maps.google.com/?cid=16534745193780662528" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.3 (9,167)</span><span>(수) 10:00 ~ 21:00</span><span>(목) 10:00 ~ 21:00</span><span>(금) 10:00 ~ 21:00</span></div>
+</div>
+</li>
+ </ul>
+ </div>
+ </div>
+
+ <div class="card" id="food">
+ <h2><span class="bar"></span>밥</h2>
+ <div class="day-block day1">
+ <div class="day-head"><span class="day-title">Day 1 · 8월 19일 (수)</span></div>
+ <ul class="item-list confirmed itin">
+ <li class="place-item">
+<span class="time">아침</span>
+<div class="slot"><span class="ttl">대구 공항</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">점심</span>
+<div class="slot"><span class="ttl">장어 덮밥</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">커피</span>
+<div class="slot"><span class="ttl">One Note</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">저녁</span>
+<div class="slot"><span class="ttl">이자카야</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">술</span>
+<div class="slot"><span class="ttl">오코노미야끼</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">야식</span>
+<div class="slot"><span class="ttl">초밥, 씨푸드, 스트롱제로</span>
+</div>
+</li>
+ </ul>
+ </div>
+ <div class="day-block day2">
+ <div class="day-head"><span class="day-title">Day 2 · 8월 20일 (목)</span></div>
+ <ul class="item-list confirmed itin">
+ <li class="place-item">
+<span class="time">아침</span>
+<div class="slot"><span class="ttl">이치란</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">간식</span>
+<div class="slot"><span class="ttl">명란 바게트</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">점심</span>
+<div class="slot"><span class="ttl">카이센동</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">커피</span>
+<div class="slot"><span class="ttl">SHIROUZU COFFEE</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">저녁</span>
+<div class="slot"><span class="ttl">모츠나베</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">술</span>
+<div class="slot"><span class="ttl">나카스강 포장마차</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">야식</span>
+<div class="slot"><span class="ttl">스트롱제로</span>
+</div>
+</li>
+ </ul>
+ </div>
+ <div class="day-block day3">
+ <div class="day-head"><span class="day-title">Day 3 · 8월 21일 (금)</span></div>
+ <ul class="item-list confirmed itin">
+ <li class="place-item">
+<span class="time">점심</span>
+<div class="slot"><span class="ttl">도미 오차즈케</span>
+</div>
+</li>
+ <li class="place-item">
+<span class="time">간식</span>
+<div class="slot"><span class="ttl">맥도날드</span>
+</div>
+</li>
+ </ul>
+ </div>
+ <div class="day-block">
+ <div class="day-head"><span class="day-title">후보</span></div>
+ <ul class="item-list confirmed itin">
+ <li class="place-item">
+<div class="slot"><span class="ttl">과일 샌드위치</span>
+ <div class="meta">Fruits Garden Shin Sun (신선산도)<a class="maplink" href="https://www.google.com/maps/search/?api=1&query=Fruits%20Garden%20Shin%20Sun%20(%EC%8B%A0%EC%84%A0%EC%82%B0%EB%8F%84)" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.4 (554)</span><span>(수) 08:00 ~ 20:00</span><span>(목) 08:00 ~ 20:00</span><span>(금) 08:00 ~ 20:00</span><span class="res need">웨이팅 지옥</span></div>
+</div>
+</li>
+ <li class="place-item">
+<div class="slot"><span class="ttl">야키소바</span>
+</div>
+</li>
+ <li class="place-item">
+<div class="slot"><span class="ttl">이자카야1</span>
+ <div class="meta">로바타 산코바시<a class="maplink" href="https://www.google.com/maps/search/?api=1&query=%EB%A1%9C%EB%B0%94%ED%83%80%20%EC%82%B0%EC%BD%94%EB%B0%94%EC%8B%9C" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.5 (664)</span><span>(수) 17:00 ~ 24:00</span><span>(목) 17:00 ~ 24:00</span><span>(금) 17:00 ~ 24:00</span><span class="res need">예약 추천</span></div>
+</div>
+</li>
+ <li class="place-item">
+<div class="slot"><span class="ttl">이자카야2</span>
+ <div class="meta">로바타 신카와바시<a class="maplink" href="https://www.google.com/maps/search/?api=1&query=%EB%A1%9C%EB%B0%94%ED%83%80%20%EC%8B%A0%EC%B9%B4%EC%99%80%EB%B0%94%EC%8B%9C" target="_blank" aria-label="지도">🐽</a></div>
+ <div class="detail"><span class="rating">★4.9 (116)</span><span>(수) 17:00 ~ 24:00</span><span>(목) 17:00 ~ 24:00</span><span>(금) 17:00 ~ 24:00</span><span class="res need">예약 추천</span></div>
+</div>
+</li>
+ </ul>
+ </div>
+ </div>
+
+ <div class="card" id="pack">
+ <h2><span class="bar"></span>짐</h2>
+ <div class="pack-duo">
+ <div class="pack-box">
+ <div class="pack-who">민기</div>
+ <div class="pack-grid">
+ <div class="pack-col">
+ <div>
+ <h3 class="sub-h neutral">필수품</h3>
+ <div class="chk"><div class="box"></div><span class="label">여권</span></div>
+ <div class="chk"><div class="box"></div><span class="label">신분증</span></div>
+ <div class="chk"><div class="box"></div><span class="label">지갑</span></div>
+ <div class="chk"><div class="box"></div><span class="label">카드</span></div>
+ <div class="chk"><div class="box"></div><span class="label">교통 카드</span></div>
+ <div class="chk"><div class="box"></div><span class="label">현지 화폐</span></div>
+ <div class="chk"><div class="box"></div><span class="label">eSIM</span></div>
+ </div>
+ <div>
+ <h3 class="sub-h neutral">세면도구</h3>
+ <div class="chk"><div class="box"></div><span class="label">샴푸</span></div>
+ <div class="chk"><div class="box"></div><span class="label">린스</span></div>
+ <div class="chk"><div class="box"></div><span class="label">클렌징</span></div>
+ <div class="chk"><div class="box"></div><span class="label">칫솔</span></div>
+ <div class="chk"><div class="box"></div><span class="label">치약</span></div>
+ <div class="chk"><div class="box"></div><span class="label">바디워시</span></div>
+ <div class="chk"><div class="box"></div><span class="label">인공 눈물</span></div>
+ <div class="chk"><div class="box"></div><span class="label">렌즈</span></div>
+ <div class="chk"><div class="box"></div><span class="label">세정액</span></div>
+ <div class="chk"><div class="box"></div><span class="label">스킨케어</span></div>
+ <div class="chk"><div class="box"></div><span class="label">선크림</span></div>
+ <div class="chk"><div class="box"></div><span class="label">빗</span></div>
+ </div>
+ </div>
+ <div class="pack-col">
+ <div>
+ <h3 class="sub-h neutral">상비약</h3>
+ <div class="chk"><div class="box"></div><span class="label">진통제</span></div>
+ <div class="chk"><div class="box"></div><span class="label">감기약</span></div>
+ <div class="chk"><div class="box"></div><span class="label">소화제</span></div>
+ <div class="chk"><div class="box"></div><span class="label">밴드</span></div>
+ </div>
+ <div>
+ <h3 class="sub-h neutral">전자기기</h3>
+ <div class="chk"><div class="box"></div><span class="label">보조배터리</span></div>
+ <div class="chk"><div class="box"></div><span class="label">충전기</span></div>
+ <div class="chk"><div class="box"></div><span class="label">어댑터</span></div>
+ <div class="chk"><div class="box"></div><span class="label">아이패드</span></div>
+ <div class="chk"><div class="box"></div><span class="label">에어팟</span></div>
+ <div class="chk"><div class="box"></div><span class="label">애플워치</span></div>
+ <div class="chk"><div class="box"></div><span class="label">고데기</span></div>
+ </div>
+ <div>
+ <h3 class="sub-h neutral">옷</h3>
+ <div class="chk"><div class="box"></div><span class="label">모자</span></div>
+ <div class="chk"><div class="box"></div><span class="label">상의2</span></div>
+ <div class="chk"><div class="box"></div><span class="label">하의2</span></div>
+ <div class="chk"><div class="box"></div><span class="label">속옷</span></div>
+ <div class="chk"><div class="box"></div><span class="label">양말</span></div>
+ <div class="chk"><div class="box"></div><span class="label">잠옷</span></div>
+ </div>
+ <div>
+ <h3 class="sub-h neutral">기타</h3>
+ <div class="chk"><div class="box"></div><span class="label">손풍기</span></div>
+ <div class="chk"><div class="box"></div><span class="label">우산</span></div>
+ </div>
+ </div>
+ </div>
+ </div>
+ <div class="pack-box">
+ <div class="pack-who">혜민</div>
+ <div class="pack-grid">
+ <div class="pack-col">
+ <div>
+ <h3 class="sub-h neutral">필수품</h3>
+ <div class="chk"><div class="box"></div><span class="label">여권</span></div>
+ <div class="chk"><div class="box"></div><span class="label">신분증</span></div>
+ <div class="chk"><div class="box"></div><span class="label">지갑</span></div>
+ <div class="chk"><div class="box"></div><span class="label">카드</span></div>
+ <div class="chk"><div class="box"></div><span class="label">교통 카드</span></div>
+ <div class="chk"><div class="box"></div><span class="label">현지 화폐</span></div>
+ <div class="chk"><div class="box"></div><span class="label">eSIM</span></div>
+ </div>
+ <div>
+ <h3 class="sub-h neutral">세면도구</h3>
+ <div class="chk"><div class="box"></div><span class="label">샴푸</span></div>
+ <div class="chk"><div class="box"></div><span class="label">린스</span></div>
+ <div class="chk"><div class="box"></div><span class="label">클렌징</span></div>
+ <div class="chk"><div class="box"></div><span class="label">칫솔</span></div>
+ <div class="chk"><div class="box"></div><span class="label">치약</span></div>
+ <div class="chk"><div class="box"></div><span class="label">바디워시</span></div>
+ <div class="chk"><div class="box"></div><span class="label">인공 눈물</span></div>
+ <div class="chk"><div class="box"></div><span class="label">렌즈</span></div>
+ <div class="chk"><div class="box"></div><span class="label">세정액</span></div>
+ <div class="chk"><div class="box"></div><span class="label">스킨케어</span></div>
+ <div class="chk"><div class="box"></div><span class="label">선크림</span></div>
+ <div class="chk"><div class="box"></div><span class="label">빗</span></div>
+ </div>
+ </div>
+ <div class="pack-col">
+ <div>
+ <h3 class="sub-h neutral">상비약</h3>
+ <div class="chk"><div class="box"></div><span class="label">진통제</span></div>
+ <div class="chk"><div class="box"></div><span class="label">감기약</span></div>
+ <div class="chk"><div class="box"></div><span class="label">소화제</span></div>
+ <div class="chk"><div class="box"></div><span class="label">밴드</span></div>
+ </div>
+ <div>
+ <h3 class="sub-h neutral">전자기기</h3>
+ <div class="chk"><div class="box"></div><span class="label">보조배터리</span></div>
+ <div class="chk"><div class="box"></div><span class="label">충전기</span></div>
+ <div class="chk"><div class="box"></div><span class="label">어댑터</span></div>
+ <div class="chk"><div class="box"></div><span class="label">아이패드</span></div>
+ <div class="chk"><div class="box"></div><span class="label">에어팟</span></div>
+ <div class="chk"><div class="box"></div><span class="label">애플워치</span></div>
+ <div class="chk"><div class="box"></div><span class="label">고데기</span></div>
+ </div>
+ <div>
+ <h3 class="sub-h neutral">옷</h3>
+ <div class="chk"><div class="box"></div><span class="label">모자</span></div>
+ <div class="chk"><div class="box"></div><span class="label">상의2</span></div>
+ <div class="chk"><div class="box"></div><span class="label">하의2</span></div>
+ <div class="chk"><div class="box"></div><span class="label">속옷</span></div>
+ <div class="chk"><div class="box"></div><span class="label">양말</span></div>
+ <div class="chk"><div class="box"></div><span class="label">잠옷</span></div>
+ </div>
+ <div>
+ <h3 class="sub-h neutral">기타</h3>
+ <div class="chk"><div class="box"></div><span class="label">손풍기</span></div>
+ <div class="chk"><div class="box"></div><span class="label">우산</span></div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+</div>
+<script>
+(function(){
+ var KEY='fukuoka-chk-v2';
+ var saved={};
+ try{ saved=JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){}
+ document.querySelectorAll('.chk').forEach(function(el,i){
+  var id=String(i);
+  if(Object.prototype.hasOwnProperty.call(saved,id)){
+   el.classList.toggle('done', !!saved[id]);
+  }
+  el.addEventListener('click',function(e){
+   if(e.target.closest('a')) return;
+   el.classList.toggle('done');
+   saved[id]=el.classList.contains('done');
+   try{ localStorage.setItem(KEY, JSON.stringify(saved)); }catch(e){}
+  });
+ });
+})();
+(function(){
+ function parseNow(s){
+  if(!s) return new Date();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)){
+   var p=s.split('-').map(Number);
+   return new Date(p[0], p[1]-1, p[2]);
+  }
+  var d=new Date(s);
+  return isNaN(d.getTime()) ? new Date() : d;
+ }
+ function parseSlot(li){
+  var el=li.querySelector('.time');
+  if(!el) return null;
+  var t=el.textContent.replace(/\s+/g,' ').trim();
+  var m=t.match(/(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})/);
+  if(m) return { start:+m[1]*60+ +m[2], end:+m[3]*60+ +m[4] };
+  var s=t.match(/(\d{1,2}):(\d{2})/);
+  if(s) return { start:+s[1]*60+ +s[2], end:null };
+  return null;
+ }
+ function markNow(block, now){
+  var items=[].slice.call(block.querySelectorAll(':scope > ul.item-list > li'));
+  var parsed=items.map(function(li){ return { li:li, t:parseSlot(li) }; });
+  var timed=parsed.filter(function(x){ return x.t; });
+  var cur=now.getHours()*60+now.getMinutes();
+  items.forEach(function(li){ li.classList.remove('now-slot'); });
+  if(!timed.length) return;
+  var dayStart=timed[0].t.start;
+  var last=timed[timed.length-1].t;
+  var dayEnd=last.end==null ? last.start : last.end;
+  if(cur<dayStart){
+   timed[0].li.classList.add('now-slot');
+   return;
+  }
+  if(cur>=dayEnd){
+   timed[timed.length-1].li.classList.add('now-slot');
+   return;
+  }
+  for(var i=0;i<parsed.length;i++){
+   var p=parsed[i].t;
+   if(!p) continue;
+   var start=p.start, end=p.end;
+   if(end==null){
+    var next=null;
+    for(var j=i+1;j<parsed.length;j++){
+     if(parsed[j].t){ next=parsed[j].t.start; break; }
+    }
+    end=next==null ? 24*60 : next;
+    if(end<=start) continue;
+   }
+   if(cur>=start && cur<end){
+    parsed[i].li.classList.add('now-slot');
+    break;
+   }
+  }
+ }
+ var frozen=new URLSearchParams(location.search).get('now');
+ function apply(scroll){
+  var now=parseNow(frozen);
+  var sel={3:'.day1',4:'.day2',5:'.day3'}[now.getDay()];
+  if(!sel) return;
+  var el=document.querySelector('#itinerary details.day-block'+sel);
+  if(!el) return;
+  el.open=true;
+  markNow(el, now);
+  if(!scroll) return;
+  var slot=el.querySelector('li.now-slot');
+  if(!slot) return;
+  if('scrollRestoration' in history) history.scrollRestoration='manual';
+  requestAnimationFrame(function(){
+   requestAnimationFrame(function(){
+    slot.scrollIntoView({ block:'center', inline:'nearest' });
+   });
+  });
+ }
+ apply(true);
+ if(!frozen) setInterval(function(){ apply(false); }, 30000);
+})();
+</script>
+</body>
+</html>
