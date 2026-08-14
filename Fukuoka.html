@@ -62,6 +62,7 @@
   .info-strip.cols-3 .info-box:last-child{ grid-column:auto; }
   .ticket .v-row{ justify-content:space-between; width:100%; gap:12px; }
   .ticket .v{ font-size:1rem; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  #itinerary .time{ font-size:15px; }
  }
  .info-box{ background:var(--group); border-radius:14px; padding:12px 14px; }
  .info-box .lbl{ font-size:var(--fs-cap2); font-weight:600; color:var(--label2); margin-bottom:3px; }
@@ -126,26 +127,27 @@
  .place-item .ttl,
  .day-block .transit,
  .time{ font-size:var(--fs-slot); }
- .place-item .ttl{ display:block; min-height:1.35em; margin:0; padding:0; }
+ .place-item .ttl{ display:block; min-height:0; margin:0; padding:0; line-height:1.4; }
 .place-item .name,
 .transit{ display:flex; align-items:center; gap:0; min-height:1.35em; }
  .name a.namelink{ color:inherit; text-decoration:none; border-bottom:1px dotted var(--sep); }
  .name a.namelink:active{ opacity:0.6; }
  .place-item .name .star{ color:var(--label2); margin-left:3px; }
- .place-item .meta{ font-size:var(--fs-body); font-weight:600; color:var(--label2); margin-top:5px; }
+ .place-item .meta{ font-size:var(--fs-body); font-weight:600; color:var(--label2); margin-top:5px; line-height:1.4; }
  .place-item .meta .menu{ color:var(--label); }
  .place-item .meta .dot{ margin:0 5px; color:var(--sep); }
- .place-item a.maplink{ font-size:1em; color:var(--label2); text-decoration:none; margin-left:0; white-space:nowrap; font-weight:600; line-height:1; display:inline-block; vertical-align:middle; transform:translateY(-1.5px); }
+ .place-item a.maplink{ font-size:1em; color:var(--label2); text-decoration:none; margin-left:0; white-space:nowrap; font-weight:600; line-height:inherit; display:inline; vertical-align:0.08em; }
  .place-item ul.sub{ list-style:none; margin:5px 0 0 0; padding:0; background:none; box-shadow:none; }
  .place-item ul.sub li{ font-size:var(--fs-body); font-weight:600; color:var(--label2); padding-left:13px; position:relative; line-height:1.7; }
  .place-item ul.sub li::before{ content:"–"; position:absolute; left:0; }
-.place-item .detail{ font-size:var(--fs-body); font-weight:600; color:var(--label2); margin-top:5px; display:flex; flex-wrap:wrap; gap:4px 8px; align-items:center; }
-.place-item .detail:has(.res)::before{ content:""; flex-basis:100%; height:0; order:1; }
+.place-item .detail{ font-size:var(--fs-body); font-weight:600; color:var(--label2); margin-top:5px; display:block; line-height:1.4; }
+.place-item .detail:has(.res)::before{ display:none; }
 .place-item .detail .rating{ color:var(--label2); font-weight:600; }
+.place-item .detail > span + span{ margin-left:8px; }
 .place-item .detail > span:not(.rating):not(.res):not(.res-wrap){ white-space:normal; }
-.place-item .detail .res-wrap{ display:inline-flex; align-items:center; gap:0; flex-wrap:nowrap; order:2; }
-.place-item .detail > .res{ order:2; }
-.place-item .detail a.link{ color:var(--label2); text-decoration:none; font-weight:600; white-space:nowrap; font-size:1em; line-height:1; margin:0; padding:0; display:inline-block; vertical-align:middle; transform:none; }
+.place-item .detail .res-wrap,
+.place-item .detail > .res{ display:block; margin:4px 0 0; margin-left:0; }
+.place-item .detail a.link{ color:var(--label2); text-decoration:none; font-weight:600; white-space:nowrap; font-size:1em; line-height:inherit; margin:0; padding:0; display:inline; vertical-align:middle; }
 .place-item .detail .res{ font-weight:600; margin:0; white-space:nowrap; color:var(--label2); }
 .place-item .detail .res.need{ color:var(--red); }
 .place-item .detail .res.ok{ color:var(--label2); }
@@ -201,8 +203,8 @@
  .day-tag{ display:inline-block; font-size:0.625rem; font-weight:700; color:#fff; background:var(--green); padding:1.5px 7px; border-radius:999px; margin-left:7px; vertical-align:middle; }
 .transit{ padding:10px 16px; }
 .transit .time{ color:var(--label); }
-.transit a.extlink{ color:var(--label2); text-decoration:none; margin-left:0; padding:0; border:0; line-height:1; font-size:15px; font-weight:400; font-family:inherit; display:inline-block; vertical-align:middle; white-space:nowrap; transform:translateY(-1.5px); }
-.transit .tlabel{ min-width:0; }
+.transit a.extlink{ color:var(--label2); text-decoration:none; margin-left:0; padding:0; border:0; line-height:1; font-size:15px; font-weight:400; font-family:inherit; display:inline; vertical-align:0.08em; white-space:nowrap; }
+.transit .tlabel{ min-width:0; line-height:1.4; }
 .transit .icon{ opacity:0.55; }
  .tbd{ color:var(--red); font-weight:700; }
 
@@ -459,12 +461,12 @@
 </div>
 </li>
  <li class="place-item">
-<span class="time">20:45 – 21:50</span>
+<span class="time">20:45 – 22:00</span>
 <div class="slot"><span class="ttl"><span class="tbd">미정</span></span>
 </div>
 </li>
  <li class="place-item">
-<span class="time time-single">21:50</span>
+<span class="time time-single">22:00</span>
 <div class="slot"><span class="ttl">호텔 도착</span>
 </div>
 </li>
