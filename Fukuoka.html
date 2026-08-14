@@ -1093,45 +1093,72 @@
  });
 })();
 </script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 <script>
 (function(){
- var KEY='fukuoka-chk-v2';
+ var CHK_KEY='fukuoka-chk-v2';
+ var EXTRA_KEY='fukuoka-pack-extra';
+ var applying=false;
  var saved={};
- try{ saved=JSON.parse(localStorage.getItem(KEY)||'{}'); }catch(e){}
- document.querySelectorAll('.chk:not(.pack-add)').forEach(function(el,i){
-  var id=String(i);
-  if(Object.prototype.hasOwnProperty.call(saved,id)){
-   el.classList.toggle('done', !!saved[id]);
-  }
-  el.addEventListener('click',function(e){
-   if(e.target.closest('a')) return;
-   el.classList.toggle('done');
-   saved[id]=el.classList.contains('done');
-   try{ localStorage.setItem(KEY, JSON.stringify(saved)); }catch(e){}
-  });
- });
-})();
-(function(){
- var KEY='fukuoka-pack-extra';
  var extra={ mingi:[], hyemin:[] };
+ var chks=[].slice.call(document.querySelectorAll('.chk:not(.pack-add)'));
+ var db=null;
+
+ try{ saved=JSON.parse(localStorage.getItem(CHK_KEY)||'{}'); }catch(e){}
  try{
-  var loaded=JSON.parse(localStorage.getItem(KEY)||'{}');
+  var loaded=JSON.parse(localStorage.getItem(EXTRA_KEY)||'{}');
   extra.mingi=Array.isArray(loaded.mingi)?loaded.mingi:[];
   extra.hyemin=Array.isArray(loaded.hyemin)?loaded.hyemin:[];
  }catch(e){}
+
  function isTest(t){
   t=(t||'').trim();
   return t==='장민기' || t==='ㅇㅇㅇㅇ' || /^ㅇ+$/.test(t);
  }
- extra.mingi=extra.mingi.filter(function(item){ return !isTest(item.t); });
- extra.hyemin=extra.hyemin.filter(function(item){ return !isTest(item.t); });
- function save(){ try{ localStorage.setItem(KEY, JSON.stringify(extra)); }catch(e){} }
- save();
+ extra.mingi=extra.mingi.filter(function(item){ return item && !isTest(item.t); });
+ extra.hyemin=extra.hyemin.filter(function(item){ return item && !isTest(item.t); });
+
+ function toArr(x){
+  if(Array.isArray(x)) return x.filter(function(v){ return v && v.t; });
+  if(!x || typeof x!=='object') return [];
+  return Object.keys(x).sort(function(a,b){ return Number(a)-Number(b); }).map(function(k){ return x[k]; }).filter(function(v){ return v && v.t; });
+ }
+
+ function snapshot(){
+  var chk={};
+  chks.forEach(function(el,i){ chk[String(i)]=el.classList.contains('done'); });
+  return { chk:chk, extra:{ mingi:extra.mingi, hyemin:extra.hyemin } };
+ }
+
+ function saveLocal(){
+  var s=snapshot();
+  try{ localStorage.setItem(CHK_KEY, JSON.stringify(s.chk)); }catch(e){}
+  try{ localStorage.setItem(EXTRA_KEY, JSON.stringify(s.extra)); }catch(e){}
+ }
+
+ function pushRemote(){
+  saveLocal();
+  if(db) db.set(snapshot());
+ }
+
+ function applyChk(data){
+  applying=true;
+  chks.forEach(function(el,i){
+   var id=String(i);
+   if(data && Object.prototype.hasOwnProperty.call(data,id)){
+    el.classList.toggle('done', !!data[id]);
+   }
+  });
+  applying=false;
+ }
+
  function bindExtra(el, who, idx){
   el.addEventListener('click',function(){
+   if(applying) return;
    el.classList.toggle('done');
    extra[who][idx].d=el.classList.contains('done');
-   save();
+   pushRemote();
   });
  }
  function row(who, idx, item){
@@ -1142,11 +1169,32 @@
   bindExtra(el, who, idx);
   return el;
  }
+ function renderExtra(){
+  applying=true;
+  ['mingi','hyemin'].forEach(function(who){
+   var box=document.querySelector('.pack-extra[data-who="'+who+'"]');
+   if(!box) return;
+   box.innerHTML='';
+   extra[who].forEach(function(item,i){ box.appendChild(row(who,i,item)); });
+  });
+  applying=false;
+ }
+
+ applyChk(saved);
+ renderExtra();
+
+ chks.forEach(function(el,i){
+  var id=String(i);
+  el.addEventListener('click',function(e){
+   if(applying) return;
+   if(e.target.closest('a')) return;
+   el.classList.toggle('done');
+   pushRemote();
+  });
+ });
  ['mingi','hyemin'].forEach(function(who){
-  var box=document.querySelector('.pack-extra[data-who="'+who+'"]');
   var form=document.querySelector('.pack-add[data-who="'+who+'"]');
-  if(!box||!form) return;
-  extra[who].forEach(function(item,i){ box.appendChild(row(who,i,item)); });
+  if(!form) return;
   var inp=form.querySelector('input');
   form.addEventListener('click',function(){ inp.focus(); });
   inp.addEventListener('keydown',function(e){
@@ -1155,11 +1203,36 @@
    var t=(inp.value||'').trim();
    if(!t) return;
    extra[who].push({ t:t, d:false });
-   save();
-   box.appendChild(row(who, extra[who].length-1, extra[who][extra[who].length-1]));
+   renderExtra();
+   pushRemote();
    inp.value='';
   });
  });
+
+ try{
+  firebase.initializeApp({
+   apiKey:"AIzaSyCFaHIbOHgp3YZ5gG-qwVgY9kbvd7pHEws",
+   authDomain:"fukuoka-e8997.firebaseapp.com",
+   databaseURL:"https://fukuoka-e8997-default-rtdb.firebaseio.com",
+   projectId:"fukuoka-e8997",
+   storageBucket:"fukuoka-e8997.firebasestorage.app",
+   messagingSenderId:"96606181697",
+   appId:"1:96606181697:web:e638aca76720e2000129c0"
+  });
+  db=firebase.database().ref('share');
+  db.on('value',function(snap){
+   var v=snap.val();
+   if(!v){
+    db.set(snapshot());
+    return;
+   }
+   extra.mingi=toArr(v.extra && v.extra.mingi).filter(function(item){ return !isTest(item.t); });
+   extra.hyemin=toArr(v.extra && v.extra.hyemin).filter(function(item){ return !isTest(item.t); });
+   applyChk(v.chk||{});
+   renderExtra();
+   saveLocal();
+  });
+ }catch(e){}
 })();
 (function(){
  function parseNow(s){
