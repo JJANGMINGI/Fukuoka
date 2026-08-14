@@ -1051,8 +1051,8 @@
  var bar=document.getElementById('ptr');
  var spin=bar.querySelector('i');
  var startY=0, pulling=false, armed=false, dy=0, busy=false;
- var THRESH=70;
- function atTop(){ return (window.scrollY||document.documentElement.scrollTop||0)<=0; }
+ var THRESH=42;
+ function atTop(){ return (window.scrollY||document.documentElement.scrollTop||0)<=12; }
  function setPull(px){
   dy=px;
   bar.style.height=Math.max(0, px)+'px';
@@ -1071,11 +1071,11 @@
  document.addEventListener('touchmove', function(e){
   if(!pulling || busy) return;
   var y=e.touches[0].clientY-startY;
-  if(y>8 && atTop()){
+  if(y>4 && atTop()){
    armed=true;
    e.preventDefault();
-   setPull(Math.min(120, (y-8)*0.5));
-  }else if(armed && y<=8){
+   setPull(Math.min(96, (y-4)*0.85));
+  }else if(armed && y<=4){
    setPull(0);
   }
  }, {passive:false});
